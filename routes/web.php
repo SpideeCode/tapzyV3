@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
+use App\Http\Controllers\Admin\TableController as AdminTableController;
 
 // Page d'accueil publique
 Route::get('/', function () {
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Routes d'administration des restaurants
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('restaurants', AdminRestaurantController::class);
+        Route::resource('tables', AdminTableController::class);
     });
 });
 
