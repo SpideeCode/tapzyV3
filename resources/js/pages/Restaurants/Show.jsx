@@ -18,13 +18,13 @@ export default function Show({ auth, restaurant }) {
                                 </div>
                                 <div className="flex space-x-2">
                                     <Link 
-                                        href={route('restaurants.edit', restaurant.id)}
+                                        href={`/restaurants/${restaurant.id}/edit`}
                                         className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
                                     >
                                         Modifier
                                     </Link>
                                     <Link 
-                                        href={route('restaurants.index')}
+                                        href="/restaurants"
                                         className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
                                     >
                                         Retour à la liste
