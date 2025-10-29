@@ -24,8 +24,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Routes pour la gestion des restaurants (version standard)
     Route::resource('restaurants', RestaurantController::class);
 
-    // Routes d'administration des restaurants
+    // Routes d'administration
     Route::prefix('admin')->name('admin.')->group(function () {
+        // Tableau de bord
+        Route::get('/dashboard', function () {
+            return Inertia::render('Admin/Dashboard');
+        })->name('dashboard');
+
+        // Gestion des restaurants
         Route::resource('restaurants', AdminRestaurantController::class);
         Route::resource('tables', AdminTableController::class);
     });
