@@ -4,34 +4,85 @@ namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class RestaurantController extends Controller
 {
+    // Afficher la liste des restaurants
     public function index()
     {
-        return Restaurant::with(['users', 'tables', 'items'])->get();
+        $restaurants = Restaurant::all();
+        return Inertia::render('Restaurants/Index', [
+            'restaurants' => $restaurants
+        ]);
     }
 
+    // Afficher le formulaire de création
+    public function create()
+    {
+        return Inertia::render('Restaurants/Create');
+    }
+
+    // Enregistrer un nouveau restaurant
     public function store(Request $request)
     {
-        $data = $request->validate(['name' => 'required|string|max:100']);
-        return Restaurant::create($data);
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|email|unique:restaurants,email',
+            'heure_ouverture' => 'required|date_format:H:i',
+            'heure_fermeture' => 'required|date_format:H:i|after:heure_ouverture',
+        ]);
+
+        Restaurant::create($validated);
+
+        return redirect()->route('restaurants.index')
+            ->with('success', 'Restaurant créé avec succès.');
     }
 
+    // Afficher les détails d'un restaurant
     public function show(Restaurant $restaurant)
     {
-        return $restaurant->load(['users', 'tables', 'items']);
+        return Inertia::render('Restaurants/Show', [
+            'restaurant' => $restaurant
+        ]);
     }
 
+    // Afficher le formulaire d'édition
+    public function edit(Restaurant $restaurant)
+    {
+        return Inertia::render('Restaurants/Edit', [
+            'restaurant' => $restaurant
+        ]);
+    }
+
+    // Mettre à jour un restaurant
     public function update(Request $request, Restaurant $restaurant)
     {
-        $restaurant->update($request->only('name'));
-        return $restaurant;
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|email|unique:restaurants,email,' . $restaurant->id,
+            'heure_ouverture' => 'required|date_format:H:i',
+            'heure_fermeture' => 'required|date_format:H:i|after:heure_ouverture',
+        ]);
+
+        $restaurant->update($validated);
+
+        return redirect()->route('restaurants.index')
+            ->with('success', 'Restaurant mis à jour avec succès.');
     }
 
+    // Supprimer un restaurant
     public function destroy(Restaurant $restaurant)
     {
         $restaurant->delete();
-        return response()->noContent();
+        
+        return redirect()->route('restaurants.index')
+            ->with('success', 'Restaurant supprimé avec succès.');
     }
 }
