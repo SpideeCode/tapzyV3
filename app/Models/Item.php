@@ -11,10 +11,17 @@ class Item extends Model
 
     protected $fillable = [
         'restaurant_id',
+        'category_id',
         'name',
         'description',
         'price',
-        'available'
+        'available',
+        'image'
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'available' => 'boolean'
     ];
 
     public function restaurant()
@@ -25,5 +32,10 @@ class Item extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

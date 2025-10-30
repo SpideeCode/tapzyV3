@@ -42,11 +42,33 @@ class RestaurantController extends Controller
             ->with('success', 'Restaurant créé avec succès.');
     }
 
-    // Afficher les détails d'un restaurant
+    // Afficher les détails d'un restaurant avec ses articles par catégorie
     public function show(Restaurant $restaurant)
     {
-        return Inertia::render('Restaurants/Show', [
-            'restaurant' => $restaurant
+        // Charger les articles avec leurs catégories, groupés par catégorie
+        $categories = $restaurant->items()
+            ->with('category')
+            ->get()
+            ->groupBy(function($item) {
+                return $item->category ? $item->category->name : 'Non catégorisé';
+            });
+
+        return Inertia::render('Public/Restaurant/Show', [
+            'restaurant' => $restaurant->load('tables'),
+            'categories' => $categories->map(function($items, $categoryName) {
+                return [
+                    'name' => $categoryName,
+                    'items' => $items->map(function($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'description' => $item->description,
+                            'price' => (float) $item->price,
+                            'image' => $item->image ? asset('storage/' . $item->image) : null
+                        ];
+                    })
+                ];
+            })->values()
         ]);
     }
 

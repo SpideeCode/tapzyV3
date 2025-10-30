@@ -16,6 +16,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Vue publique d'un restaurant
+Route::get('/restaurants/{restaurant:slug}', [RestaurantController::class, 'show'])
+    ->name('restaurants.show');
+
 // Routes protégées par authentification
 Route::middleware(['auth', 'verified'])->group(function () {
     // Tableau de bord
