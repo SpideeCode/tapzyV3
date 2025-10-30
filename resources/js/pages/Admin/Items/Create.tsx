@@ -8,11 +8,17 @@ interface Restaurant {
     name: string;
 }
 
-interface CreateItemProps {
-    restaurants: Restaurant[];
+interface Category {
+    id: number;
+    name: string;
 }
 
-export default function CreateItem({ restaurants }: CreateItemProps) {
+interface CreateItemProps {
+    restaurants: Restaurant[];
+    categories: Category[];
+}
+
+export default function CreateItem({ restaurants, categories }: CreateItemProps) {
     return (
         <AdminLayout>
             <Head title="Créer un article" />
@@ -22,7 +28,8 @@ export default function CreateItem({ restaurants }: CreateItemProps) {
                         <div className="p-6 bg-white border-b border-gray-200">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Créer un nouvel article</h2>
                             <ItemForm 
-                                restaurants={restaurants} 
+                                restaurants={restaurants}
+                                categories={categories}
                             />
                         </div>
                     </div>

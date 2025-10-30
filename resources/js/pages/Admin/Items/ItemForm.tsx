@@ -6,8 +6,14 @@ interface Restaurant {
     name: string;
 }
 
+interface Category {
+    id: number;
+    name: string;
+}
+
 interface ItemFormData {
     restaurant_id: string;
+    category_id: string | null;
     name: string;
     description: string;
     price: string;
@@ -18,17 +24,20 @@ interface ItemFormProps {
     item?: {
         id?: number;
         restaurant_id: number | null;
+        category_id: number | null;
         name: string;
         description: string | null;
         price: number;
         available: boolean;
     };
     restaurants: Restaurant[];
+    categories: Category[];
 }
 
-export default function ItemForm({ item, restaurants }: ItemFormProps) {
+export default function ItemForm({ item, restaurants, categories }: ItemFormProps) {
     const { data, setData, post, put, processing, errors } = useForm<ItemFormData>({
         restaurant_id: item?.restaurant_id ? String(item.restaurant_id) : '',
+        category_id: item?.category_id ? String(item.category_id) : '',
         name: item?.name || '',
         description: item?.description || '',
         price: item?.price ? item.price.toString() : '0',
@@ -40,6 +49,7 @@ export default function ItemForm({ item, restaurants }: ItemFormProps) {
         
         const formData = {
             restaurant_id: data.restaurant_id,
+            category_id: data.category_id || null,
             name: data.name,
             description: data.description,
             price: parseFloat(data.price) || 0,
@@ -56,15 +66,13 @@ export default function ItemForm({ item, restaurants }: ItemFormProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div className="sm:col-span-6">
-                    <label htmlFor="restaurant_id" className="block text-sm font-medium text-gray-700">
-                        Restaurant <span className="text-red-500">*</span>
-                    </label>
+                <div>
+                    <label htmlFor="restaurant_id" className="block text-sm font-medium text-gray-700">Restaurant</label>
                     <select
                         id="restaurant_id"
                         value={data.restaurant_id}
                         onChange={(e) => setData('restaurant_id', e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                         required
                     >
                         <option value="">Sélectionnez un restaurant</option>
@@ -74,7 +82,25 @@ export default function ItemForm({ item, restaurants }: ItemFormProps) {
                             </option>
                         ))}
                     </select>
-                    {errors.restaurant_id && <p className="mt-1 text-sm text-red-600">{errors.restaurant_id}</p>}
+                    {errors.restaurant_id && <p className="mt-2 text-sm text-red-600">{errors.restaurant_id}</p>}
+                </div>
+                
+                <div>
+                    <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">Catégorie</label>
+                    <select
+                        id="category_id"
+                        value={data.category_id || ''}
+                        onChange={(e) => setData('category_id', e.target.value || null)}
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    >
+                        <option value="">Aucune catégorie</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.category_id && <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>}
                 </div>
 
                 <div className="sm:col-span-6">

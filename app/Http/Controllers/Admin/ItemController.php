@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\Restaurant;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -24,9 +25,11 @@ class ItemController extends Controller
     public function create()
     {
         $restaurants = Restaurant::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
 
         return Inertia::render('Admin/Items/Create', [
-            'restaurants' => $restaurants
+            'restaurants' => $restaurants,
+            'categories' => $categories
         ]);
     }
 
@@ -34,6 +37,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
+            'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -49,10 +53,12 @@ class ItemController extends Controller
     public function edit(Item $item)
     {
         $restaurants = Restaurant::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
 
         return Inertia::render('Admin/Items/Edit', [
-            'item' => $item,
-            'restaurants' => $restaurants
+            'item' => $item->load(['restaurant', 'category']),
+            'restaurants' => $restaurants,
+            'categories' => $categories
         ]);
     }
 
@@ -60,6 +66,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
+            'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',

@@ -42,6 +42,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tables', AdminTableController::class);
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::resource('items', AdminItemController::class)->except(['show']);
+        
+        // Gestion des catégories
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except(['show']);
     });
 });
 

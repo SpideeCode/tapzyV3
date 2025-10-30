@@ -8,6 +8,11 @@ interface Restaurant {
     name: string;
 }
 
+interface Category {
+    id: number;
+    name: string;
+}
+
 interface Item {
     id: number;
     name: string;
@@ -15,15 +20,18 @@ interface Item {
     price: number;
     available: boolean;
     restaurant_id: number | null;
+    category_id: number | null;
     restaurant: Restaurant | null;
+    category: Category | null;
 }
 
 interface EditItemProps {
     item: Item;
     restaurants: Restaurant[];
+    categories: Category[];
 }
 
-export default function EditItem({ item, restaurants }: EditItemProps) {
+export default function EditItem({ item, restaurants, categories }: EditItemProps) {
     return (
         <AdminLayout>
             <Head title={`Modifier ${item.name}`} />
@@ -34,7 +42,8 @@ export default function EditItem({ item, restaurants }: EditItemProps) {
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Modifier l'article : {item.name}</h2>
                             <ItemForm 
                                 item={item}
-                                restaurants={restaurants} 
+                                restaurants={restaurants}
+                                categories={categories}
                             />
                         </div>
                     </div>
