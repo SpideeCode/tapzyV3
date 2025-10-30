@@ -7,6 +7,7 @@ use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Admin\TableController as AdminTableController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ItemController as AdminItemController;
 
 // Page d'accueil publique
 Route::get('/', function () {
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('restaurants', AdminRestaurantController::class);
         Route::resource('tables', AdminTableController::class);
         Route::resource('users', AdminUserController::class)->except(['show']);
+        Route::resource('items', AdminItemController::class)->except(['show']);
     });
 });
 
