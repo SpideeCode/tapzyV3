@@ -80,7 +80,9 @@ export default function Index({ items }: IndexProps) {
                                                     <div className="text-sm text-gray-900">{item.restaurant.name}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{item.price.toFixed(2)} €</div>
+                                                    <div className="text-sm text-gray-900">
+                                                        {typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price).toFixed(2)} €
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

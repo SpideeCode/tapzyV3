@@ -4,7 +4,7 @@ import { router } from '@inertiajs/react';
 
 interface Restaurant {
     id: number;
-    nom: string;
+    name: string;
 }
 
 interface TableFormProps {
@@ -67,7 +67,7 @@ export default function TableForm({ table, restaurants }: TableFormProps) {
                         <option value="">Sélectionnez un restaurant</option>
                         {restaurants.map((restaurant) => (
                             <option key={restaurant.id} value={restaurant.id}>
-                                {restaurant.nom}
+                                {restaurant.name}
                             </option>
                         ))}
                     </select>

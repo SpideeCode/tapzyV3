@@ -62,15 +62,9 @@ export default function AdminRestaurantsIndex({ restaurants, pagination }: Props
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                         <Link 
                                                             href={`/admin/restaurants/${restaurant.id}/edit`}
-                                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                                        >
-                                                            Modifier
-                                                        </Link>
-                                                        <Link 
-                                                            href={`/admin/restaurants/${restaurant.id}`}
                                                             className="text-indigo-600 hover:text-indigo-900"
                                                         >
-                                                            Voir
+                                                            Modifier
                                                         </Link>
                                                         <Link
                                                             href={`/admin/restaurants/${restaurant.id}`}

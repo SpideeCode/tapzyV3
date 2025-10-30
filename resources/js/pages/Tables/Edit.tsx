@@ -5,7 +5,7 @@ import TableForm from './TableForm';
 
 interface Restaurant {
     id: number;
-    nom: string;
+    name: string;
 }
 
 interface Table {

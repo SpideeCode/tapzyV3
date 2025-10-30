@@ -5,7 +5,7 @@ import { Link } from '@inertiajs/react';
 
 interface Restaurant {
     id: number;
-    nom: string;
+    name: string;
 }
 
 interface Table {
@@ -78,7 +78,7 @@ export default function TablesIndex({ tables }: TablesIndexProps) {
                                                         <div className="text-sm font-medium text-gray-900">{table.table_number}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-500">{table.restaurant.nom}</div>
+                                                        <div className="text-sm text-gray-500">{table.restaurant.name}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="text-sm text-gray-500">
