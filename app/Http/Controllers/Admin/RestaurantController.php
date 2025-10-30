@@ -17,7 +17,13 @@ class RestaurantController extends Controller
         $restaurants = Restaurant::latest()->paginate(10);
         
         return Inertia::render('Restaurants/Index', [
-            'restaurants' => $restaurants
+            'restaurants' => $restaurants->items(),
+            'pagination' => [
+                'current_page' => $restaurants->currentPage(),
+                'last_page' => $restaurants->lastPage(),
+                'per_page' => $restaurants->perPage(),
+                'total' => $restaurants->total(),
+            ]
         ]);
     }
 
@@ -35,13 +41,7 @@ class RestaurantController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'adresse' => 'required|string|max:255',
-            'telephone' => 'required|string|max:20',
-            'email' => 'required|email|unique:restaurants,email',
-            'heure_ouverture' => 'required|date_format:H:i',
-            'heure_fermeture' => 'required|date_format:H:i|after:heure_ouverture',
+            'name' => 'required|string|max:255|unique:restaurants,name',
         ]);
 
         Restaurant::create($validated);
@@ -66,13 +66,7 @@ class RestaurantController extends Controller
     public function update(Request $request, Restaurant $restaurant)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'adresse' => 'required|string|max:255',
-            'telephone' => 'required|string|max:20',
-            'email' => 'required|email|unique:restaurants,email,' . $restaurant->id,
-            'heure_ouverture' => 'required|date_format:H:i',
-            'heure_fermeture' => 'required|date_format:H:i|after:heure_ouverture',
+            'name' => 'required|string|max:255|unique:restaurants,name,' . $restaurant->id,
         ]);
 
         $restaurant->update($validated);

@@ -4,14 +4,24 @@ import AdminLayout from '@/Layouts/AdminLayout';
 
 interface Restaurant {
     id: number;
-    nom: string;
-    description?: string;
-    adresse: string;
-    telephone: string;
-    email?: string;
+    name: string;
+    created_at: string;
+    updated_at: string;
 }
 
-export default function AdminRestaurantsIndex({ restaurants }: { restaurants: Restaurant[] }) {
+interface Pagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
+
+interface Props {
+    restaurants: Restaurant[];
+    pagination: Pagination;
+}
+
+export default function AdminRestaurantsIndex({ restaurants, pagination }: Props) {
     return (
         <AdminLayout>
             <Head title="Gestion des restaurants" />
@@ -36,8 +46,7 @@ export default function AdminRestaurantsIndex({ restaurants }: { restaurants: Re
                                         <thead className="bg-gray-50">
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créé le</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
@@ -45,13 +54,10 @@ export default function AdminRestaurantsIndex({ restaurants }: { restaurants: Re
                                             {restaurants.map((restaurant) => (
                                                 <tr key={restaurant.id}>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{restaurant.nom}</div>
+                                                        <div className="text-sm font-medium text-gray-900">{restaurant.name}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {restaurant.email}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {restaurant.telephone}
+                                                        {new Date(restaurant.created_at).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                         <Link 
@@ -82,6 +88,34 @@ export default function AdminRestaurantsIndex({ restaurants }: { restaurants: Re
                                             ))}
                                         </tbody>
                                     </table>
+                                    
+                                    {/* Pagination */}
+                                    {pagination.last_page > 1 && (
+                                        <div className="mt-4 flex justify-between items-center">
+                                            <div className="text-sm text-gray-700">
+                                                Affichage de <span className="font-medium">{restaurants.length}</span> sur <span className="font-medium">{pagination.total}</span> restaurants
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                {pagination.current_page > 1 && (
+                                                    <Link 
+                                                        href={`/admin/restaurants?page=${pagination.current_page - 1}`}
+                                                        className="px-3 py-1 border rounded-md text-sm font-medium"
+                                                    >
+                                                        Précédent
+                                                    </Link>
+                                                )}
+                                                
+                                                {pagination.current_page < pagination.last_page && (
+                                                    <Link 
+                                                        href={`/admin/restaurants?page=${pagination.current_page + 1}`}
+                                                        className="px-3 py-1 border rounded-md text-sm font-medium"
+                                                    >
+                                                        Suivant
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
