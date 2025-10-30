@@ -6,8 +6,8 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Admin\TableController as AdminTableController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 // Page d'accueil publique
 Route::get('/', function () {

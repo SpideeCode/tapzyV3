@@ -22,8 +22,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             isActive={page.url.startsWith(
                                 resolveUrl(item.href),
                             )}
-                            tooltip={{ children: item.title }}
-                        >
+                            >
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
