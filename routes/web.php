@@ -21,6 +21,10 @@ Route::get('/', function () {
 Route::get('/restaurants/{restaurant:slug}', [RestaurantController::class, 'show'])
     ->name('restaurants.show');
 
+// Page de paiement du restaurant
+Route::get('/restaurants/{restaurant:slug}/payment', [RestaurantController::class, 'payment'])
+    ->name('restaurants.payment');
+
 // Endpoint public pour créer une commande (invité) via numéro de table
 Route::post('/public/orders', [OrderController::class, 'storeGuest'])
     ->name('public.orders.store');
@@ -47,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tables', AdminTableController::class);
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::resource('items', AdminItemController::class)->except(['show']);
+        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index']);
         
         // Gestion des catégories
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except(['show']);

@@ -72,6 +72,18 @@ class RestaurantController extends Controller
         ]);
     }
 
+    // Page de paiement publique
+    public function payment(Restaurant $restaurant)
+    {
+        return Inertia::render('Public/Restaurant/Payment', [
+            'restaurant' => $restaurant->load('tables'),
+            'paymentMethods' => [
+                ['id' => 'cash', 'label' => 'Espèces'],
+                ['id' => 'card', 'label' => 'Carte bancaire'],
+            ],
+        ]);
+    }
+
     // Afficher le formulaire d'édition
     public function edit(Restaurant $restaurant)
     {

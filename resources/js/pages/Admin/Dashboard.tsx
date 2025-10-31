@@ -41,6 +41,18 @@ const AdminDashboard = () => {
             buttonClass: 'bg-green-600 hover:bg-green-700'
         },
         {
+            title: 'Gestion des commandes',
+            description: 'Consultez et gérez les commandes des clients',
+            link: '/admin/orders',
+            icon: (
+                <svg className="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18M3 7h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z" />
+                </svg>
+            ),
+            buttonText: 'Accéder',
+            buttonClass: 'bg-red-600 hover:bg-red-700'
+        },
+        {
             title: 'Statistiques',
             description: 'Visualisez les statistiques et les performances',
             link: '/admin/statistics',

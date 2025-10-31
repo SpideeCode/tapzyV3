@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { useCart } from '@/hooks/use-cart';
 
@@ -35,6 +35,7 @@ interface Restaurant {
     id: number;
     name: string;
     description: string | null;
+    slug?: string;
     tables: Array<{
         id: number;
         table_number: string;
@@ -53,13 +54,8 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
         setRestaurant(restaurant.id);
     }, [restaurant.id, setRestaurant]);
 
-    const handleSubmit = async () => {
-        const res = await submit();
-        if (!res.ok) {
-            alert(res.error || 'Erreur');
-        } else {
-            alert('Commande envoyée !');
-        }
+    const handleGoToPayment = () => {
+        router.visit(`/restaurants/${(restaurant as any).slug || restaurant.id}/payment`);
     };
     return (
         <AppLayout>
@@ -177,10 +173,10 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                 </div>
                                 <button
                                     className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                                    onClick={handleSubmit}
+                                    onClick={handleGoToPayment}
                                     disabled={!state.tableNumber || state.items.length === 0}
                                 >
-                                    Envoyer la commande
+                                    Continuer vers paiement
                                 </button>
                             </div>
                         </div>
