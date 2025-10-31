@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Admin\TableController as AdminTableController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
@@ -19,6 +20,10 @@ Route::get('/', function () {
 // Vue publique d'un restaurant
 Route::get('/restaurants/{restaurant:slug}', [RestaurantController::class, 'show'])
     ->name('restaurants.show');
+
+// Endpoint public pour créer une commande (invité) via numéro de table
+Route::post('/public/orders', [OrderController::class, 'storeGuest'])
+    ->name('public.orders.store');
 
 // Routes protégées par authentification
 Route::middleware(['auth', 'verified'])->group(function () {

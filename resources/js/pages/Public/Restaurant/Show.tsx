@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useCart } from '@/hooks/use-cart';
 
 // Fonction utilitaire pour formater le prix
 export const formatPrice = (price: unknown): string => {
@@ -46,6 +47,20 @@ interface ShowRestaurantProps {
 }
 
 export default function Show({ restaurant, categories }: ShowRestaurantProps) {
+    const { setRestaurant, setTableNumber, state, addItem, increment, decrement, removeItem, total, submit } = useCart();
+
+    React.useEffect(() => {
+        setRestaurant(restaurant.id);
+    }, [restaurant.id, setRestaurant]);
+
+    const handleSubmit = async () => {
+        const res = await submit();
+        if (!res.ok) {
+            alert(res.error || 'Erreur');
+        } else {
+            alert('Commande envoyée !');
+        }
+    };
     return (
         <AppLayout>
             <Head title={restaurant.name} />
@@ -71,12 +86,9 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                     <button
                                         key={table.id}
                                         className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                        onClick={() => {
-                                            // Gérer la sélection de la table
-                                            console.log('Table sélectionnée:', table.id);
-                                        }}
+                                        onClick={() => setTableNumber(String(table.table_number))}
                                     >
-                                        Table {table.table_number}
+                                        Table {table.table_number}{state.tableNumber === String(table.table_number) ? ' ✓' : ''}
                                     </button>
                                 ))
                             ) : (
@@ -116,10 +128,7 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                                 )}
                                                 <button
                                                     className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                                    onClick={() => {
-                                                        // Gérer l'ajout au panier
-                                                        console.log('Ajouter au panier:', item.id);
-                                                    }}
+                                                    onClick={() => addItem({ itemId: item.id, name: item.name, price: item.price, image: item.image })}
                                                 >
                                                     Ajouter au panier
                                                 </button>
@@ -129,6 +138,52 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Panier */}
+                    <div className="fixed bottom-6 right-6 w-full max-w-sm">
+                        <div className="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+                            <div className="px-4 py-3 border-b">
+                                <h3 className="font-semibold">Votre panier</h3>
+                                <p className="text-sm text-gray-500">Table: {state.tableNumber ?? 'non sélectionnée'}</p>
+                            </div>
+                            <div className="max-h-72 overflow-auto divide-y">
+                                {state.items.length === 0 ? (
+                                    <div className="p-4 text-sm text-gray-500">Panier vide</div>
+                                ) : (
+                                    state.items.map((line) => (
+                                        <div key={line.itemId} className="p-4 flex items-center gap-3">
+                                            {line.image && (
+                                                <img src={line.image} alt={line.name} className="w-12 h-12 object-cover rounded" />
+                                            )}
+                                            <div className="flex-1">
+                                                <div className="font-medium">{line.name}</div>
+                                                <div className="text-sm text-gray-500">{formatPrice(line.price)}</div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button className="px-2 py-1 border rounded" onClick={() => decrement(line.itemId)}>-</button>
+                                                <span className="min-w-6 text-center">{line.quantity}</span>
+                                                <button className="px-2 py-1 border rounded" onClick={() => increment(line.itemId)}>+</button>
+                                            </div>
+                                            <button className="ml-2 text-red-500" onClick={() => removeItem(line.itemId)}>×</button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="p-4 border-t">
+                                <div className="flex justify-between mb-3">
+                                    <span className="text-gray-600">Total</span>
+                                    <span className="font-semibold">{formatPrice(total)}</span>
+                                </div>
+                                <button
+                                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                                    onClick={handleSubmit}
+                                    disabled={!state.tableNumber || state.items.length === 0}
+                                >
+                                    Envoyer la commande
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
