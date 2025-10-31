@@ -29,6 +29,12 @@ Route::get('/restaurants/{restaurant:slug}/payment', [RestaurantController::clas
 Route::post('/public/orders', [OrderController::class, 'storeGuest'])
     ->name('public.orders.store');
 
+// Routes publiques pour le staff (temporairement sans auth)
+Route::get('/staff/orders', [\App\Http\Controllers\StaffController::class, 'orders'])
+    ->name('staff.orders');
+Route::patch('/staff/orders/{order}/status', [\App\Http\Controllers\StaffController::class, 'updateOrderStatus'])
+    ->name('staff.orders.update-status');
+
 // Routes protégées par authentification
 Route::middleware(['auth', 'verified'])->group(function () {
     // Tableau de bord
@@ -49,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Gestion des restaurants
         Route::resource('restaurants', AdminRestaurantController::class);
         Route::resource('tables', AdminTableController::class);
+        Route::post('tables/{table}/regenerate-qr', [AdminTableController::class, 'regenerateQrCode'])->name('admin.tables.regenerate-qr');
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::resource('items', AdminItemController::class)->except(['show']);
         Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index']);

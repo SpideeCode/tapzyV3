@@ -44,7 +44,12 @@ return Inertia::render('Tables/Create', [
             'qr_code' => 'nullable|string|max:255',
         ]);
 
-        Table::create($validated);
+        $table = Table::create($validated);
+        
+        // Générer automatiquement le QR code si non fourni
+        if (empty($validated['qr_code'])) {
+            $this->generateQrCode($table);
+        }
 
         return redirect('/admin/tables')->with('success', 'Table créée avec succès.');
     }
@@ -75,6 +80,38 @@ return Inertia::render('Tables/Edit', [
         $table->update($validated);
 
         return redirect('/admin/tables')->with('success', 'Table mise à jour avec succès.');
+    }
+
+    /**
+     * Générer un QR code pour une table
+     */
+    public function generateQrCode(Table $table)
+    {
+        $restaurant = $table->restaurant()->first();
+        if (!$restaurant) {
+            return null;
+        }
+        
+        $slug = $restaurant->slug ?? $restaurant->id;
+        $url = url("/restaurants/{$slug}?table={$table->table_number}");
+        
+        // Utiliser une API externe pour générer l'image QR
+        // Stocker l'URL du QR code généré (optionnel : on peut aussi stocker l'URL du restaurant directement)
+        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($url);
+        
+        $table->update(['qr_code' => $qrCodeUrl]);
+
+        return $qrCodeUrl;
+    }
+
+    /**
+     * Régénérer le QR code d'une table
+     */
+    public function regenerateQrCode(Table $table)
+    {
+        $this->generateQrCode($table);
+        
+        return redirect()->back()->with('success', 'QR code régénéré avec succès.');
     }
 
     /**

@@ -81,12 +81,46 @@ export default function TablesIndex({ tables }: TablesIndexProps) {
                                                         <div className="text-sm text-gray-500">{table.restaurant.name}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="flex items-center gap-2">
                                                             {table.qr_code ? (
-                                                                <a href={`/storage/${table.qr_code}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
-                                                                    Voir QR Code
-                                                                </a>
-                                                            ) : 'Non généré'}
+                                                                <>
+                                                                    <img 
+                                                                        src={table.qr_code} 
+                                                                        alt={`QR Code Table ${table.table_number}`}
+                                                                        className="w-16 h-16 border rounded"
+                                                                    />
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <a 
+                                                                            href={table.qr_code} 
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer" 
+                                                                            className="text-xs text-indigo-600 hover:text-indigo-900"
+                                                                        >
+                                                                            Voir / Télécharger
+                                                                        </a>
+                                                                        <Link
+                                                                            href={`/admin/tables/${table.id}/regenerate-qr`}
+                                                                            method="post"
+                                                                            as="button"
+                                                                            className="text-xs text-gray-600 hover:text-gray-900"
+                                                                        >
+                                                                            Régénérer
+                                                                        </Link>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <span className="text-sm text-gray-500">Non généré</span>
+                                                                    <Link
+                                                                        href={`/admin/tables/${table.id}/regenerate-qr`}
+                                                                        method="post"
+                                                                        as="button"
+                                                                        className="text-xs text-indigo-600 hover:text-indigo-900"
+                                                                    >
+                                                                        Générer
+                                                                    </Link>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

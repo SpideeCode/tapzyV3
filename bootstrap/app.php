@@ -21,6 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        // Exclure la route publique des commandes du CSRF (temporairement)
+        $middleware->validateCsrfTokens(except: [
+            'public/orders',
+            'staff/orders/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

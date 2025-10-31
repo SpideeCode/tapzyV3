@@ -112,12 +112,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (!state.tableNumber) return { ok: false, error: "numéro de table manquant" };
         if (state.items.length === 0) return { ok: false, error: "panier vide" };
 
-        const csrf = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
+        // Récupérer le token CSRF depuis le meta tag ou les cookies
+        const getCsrfToken = () => {
+            // Essayer d'abord le meta tag
+            const metaTag = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
+            if (metaTag?.content) {
+                return metaTag.content;
+            }
+            
+            // Sinon, essayer les cookies Laravel (XSRF-TOKEN)
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'XSRF-TOKEN') {
+                    return decodeURIComponent(value);
+                }
+            }
+            
+            return '';
+        };
+
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            return { ok: false, error: 'Token CSRF manquant. Veuillez recharger la page.' };
+        }
+
         const res = await fetch('/public/orders', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrf?.content || '',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
             },
             credentials: 'same-origin',
@@ -133,7 +158,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 const err = await res.json();
                 return { ok: false, error: err.message || 'Erreur serveur' };
             } catch {
-                return { ok: false, error: 'Erreur serveur' };
+                const text = await res.text();
+                return { ok: false, error: text || 'Erreur serveur' };
             }
         }
 

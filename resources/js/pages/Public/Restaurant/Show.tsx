@@ -52,7 +52,14 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
 
     React.useEffect(() => {
         setRestaurant(restaurant.id);
-    }, [restaurant.id, setRestaurant]);
+        
+        // Pré-remplir la table depuis l'URL si présente
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableFromUrl = urlParams.get('table');
+        if (tableFromUrl) {
+            setTableNumber(tableFromUrl);
+        }
+    }, [restaurant.id, setRestaurant, setTableNumber]);
 
     const handleGoToPayment = () => {
         router.visit(`/restaurants/${(restaurant as any).slug || restaurant.id}/payment`);
