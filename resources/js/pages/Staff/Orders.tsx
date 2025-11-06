@@ -55,6 +55,14 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
     const [status, setStatus] = React.useState<string>(currentStatus || '');
     const [updating, setUpdating] = React.useState<Record<number, boolean>>({});
 
+    // Auto-rafraîchissement périodique
+    React.useEffect(() => {
+        const id = setInterval(() => {
+            router.reload({ only: ['orders'] });
+        }, 5000);
+        return () => clearInterval(id);
+    }, []);
+
     const applyFilters = () => {
         const params = new URLSearchParams();
         if (restaurantId) params.set('restaurant_id', restaurantId);

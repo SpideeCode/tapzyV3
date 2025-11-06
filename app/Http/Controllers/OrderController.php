@@ -107,4 +107,12 @@ class OrderController extends Controller
         $order->delete();
         return response()->noContent();
     }
+
+    // Page de confirmation publique d'une commande
+    public function showPublic(Order $order)
+    {
+        return \Inertia\Inertia::render('Public/Order/Confirmation', [
+            'order' => $order->load(['restaurant', 'table', 'items.item']),
+        ]);
+    }
 }

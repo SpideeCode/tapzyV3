@@ -33,9 +33,12 @@ export default function Payment({ restaurant, paymentMethods }: PaymentProps) {
             alert(res.error || 'Erreur');
             return;
         }
-        alert('Commande envoyée au staff, préparation en cours.');
-        // Retour à la page du restaurant
-        router.visit(`/restaurants/${(restaurant as any).slug || restaurant.id}`);
+        const orderId = (res as any).order?.id;
+        if (orderId) {
+            router.visit(`/orders/${orderId}/confirmation`);
+        } else {
+            router.visit(`/restaurants/${(restaurant as any).slug || restaurant.id}`);
+        }
     };
 
     return (

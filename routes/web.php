@@ -29,6 +29,10 @@ Route::get('/restaurants/{restaurant:slug}/payment', [RestaurantController::clas
 Route::post('/public/orders', [OrderController::class, 'storeGuest'])
     ->name('public.orders.store');
 
+// Confirmation publique d'une commande
+Route::get('/orders/{order}/confirmation', [OrderController::class, 'showPublic'])
+    ->name('orders.confirmation');
+
 // Routes publiques pour le staff (temporairement sans auth)
 Route::get('/staff/orders', [\App\Http\Controllers\StaffController::class, 'orders'])
     ->name('staff.orders');
