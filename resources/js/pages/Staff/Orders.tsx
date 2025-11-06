@@ -74,12 +74,23 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
     const changeStatus = async (orderId: number, newStatus: string) => {
         setUpdating((prev) => ({ ...prev, [orderId]: true }));
         try {
-            const csrf = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
+            // Récupérer token depuis meta ou cookie XSRF-TOKEN
+            const getCsrf = () => {
+                const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
+                if (meta?.content) return meta.content;
+                const cookies = document.cookie.split(';');
+                for (const c of cookies) {
+                    const [name, value] = c.trim().split('=');
+                    if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
+                }
+                return '';
+            };
+            const csrf = getCsrf();
             const res = await fetch(`/staff/orders/${orderId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf?.content || '',
+                    'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'same-origin',
@@ -88,7 +99,9 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
             if (res.ok) {
                 router.reload({ only: ['orders'] });
             } else {
-                alert('Erreur lors de la mise à jour');
+                let msg = 'Erreur lors de la mise à jour';
+                try { const j = await res.json(); msg = j.message || msg; } catch {}
+                alert(msg);
             }
         } catch (err) {
             alert('Erreur lors de la mise à jour');

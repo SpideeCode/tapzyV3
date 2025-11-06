@@ -35,6 +35,7 @@ const STORAGE_KEY = (restaurantId: number | null) => `tapzy.cart.${restaurantId 
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<CartState>({ restaurantId: null, tableNumber: null, items: [] });
     const initialized = useRef(false);
+    const submittingRef = useRef(false);
 
     // Load from localStorage when restaurantId changes
     useEffect(() => {
@@ -108,9 +109,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const count = useMemo(() => state.items.reduce((sum, i) => sum + i.quantity, 0), [state.items]);
 
     const submit = useCallback(async () => {
+        if (submittingRef.current) return { ok: false, error: 'Soumission en cours' };
         if (!state.restaurantId) return { ok: false, error: "restaurant manquant" };
         if (!state.tableNumber) return { ok: false, error: "numéro de table manquant" };
         if (state.items.length === 0) return { ok: false, error: "panier vide" };
+        submittingRef.current = true;
 
         // Récupérer le token CSRF depuis le meta tag ou les cookies
         const getCsrfToken = () => {
@@ -165,6 +168,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         const order = await res.json();
         clear();
+        submittingRef.current = false;
         return { ok: true, order };
     }, [state, clear]);
 
