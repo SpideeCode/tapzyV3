@@ -30,6 +30,24 @@ class OrderController extends Controller
             'currentRestaurantId' => $restaurantId,
         ]);
     }
+
+    public function show(Order $order)
+    {
+        return Inertia::render('Admin/Orders/Show', [
+            'order' => $order->load(['restaurant', 'table', 'items.item']),
+        ]);
+    }
+
+    public function update(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,in_progress,served,cancelled',
+        ]);
+
+        $order->update($validated);
+
+        return redirect()->back()->with('success', 'Statut mis à jour');
+    }
 }
 
 

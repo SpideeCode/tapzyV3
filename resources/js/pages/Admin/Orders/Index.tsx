@@ -79,6 +79,7 @@ export default function AdminOrdersIndex({ orders, restaurants, currentRestauran
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créée</th>
+                                    <th className="px-4 py-3" />
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -94,6 +95,9 @@ export default function AdminOrdersIndex({ orders, restaurants, currentRestauran
                                         </td>
                                         <td className="px-4 py-3 font-medium">{formatPrice(o.total)}</td>
                                         <td className="px-4 py-3 text-sm text-gray-500">{new Date(o.created_at).toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-right">
+                                            <Link href={`/admin/orders/${o.id}`} className="text-indigo-600 hover:text-indigo-900 text-sm">Détails</Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

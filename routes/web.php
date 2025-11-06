@@ -62,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tables/{table}/regenerate-qr', [AdminTableController::class, 'regenerateQrCode'])->name('admin.tables.regenerate-qr');
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::resource('items', AdminItemController::class)->except(['show']);
-        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index']);
+        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index','show','update']);
         
         // Gestion des catégories
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except(['show']);
