@@ -62,8 +62,7 @@ const AdminDashboard = () => {
                 </svg>
             ),
             buttonText: 'Voir',
-            buttonClass: 'bg-yellow-600 hover:bg-yellow-700',
-            disabled: true
+            buttonClass: 'bg-yellow-600 hover:bg-yellow-700'
         },
         {
             title: 'Paramètres',
