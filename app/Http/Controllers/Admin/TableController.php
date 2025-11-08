@@ -28,8 +28,11 @@ class TableController extends Controller
     public function create()
     {
         $restaurants = Restaurant::all();
-return Inertia::render('Tables/Create', [
-            'restaurants' => $restaurants
+        $existingTables = Table::select('id', 'table_number', 'restaurant_id')->get();
+        
+        return Inertia::render('Tables/Create', [
+            'restaurants' => $restaurants,
+            'existingTables' => $existingTables
         ]);
     }
 
@@ -40,7 +43,20 @@ return Inertia::render('Tables/Create', [
     {
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
-            'table_number' => 'required|string|max:20',
+            'table_number' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) use ($request) {
+                    $exists = Table::where('restaurant_id', $request->restaurant_id)
+                        ->where('table_number', $value)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Ce numéro de table est déjà utilisé dans ce restaurant.');
+                    }
+                },
+            ],
             'qr_code' => 'nullable|string|max:255',
         ]);
 
@@ -73,7 +89,21 @@ return Inertia::render('Tables/Edit', [
     {
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
-            'table_number' => 'required|string|max:20',
+            'table_number' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) use ($request, $table) {
+                    $exists = Table::where('restaurant_id', $request->restaurant_id)
+                        ->where('table_number', $value)
+                        ->where('id', '!=', $table->id)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Ce numéro de table est déjà utilisé dans ce restaurant.');
+                    }
+                },
+            ],
             'qr_code' => 'nullable|string|max:255',
         ]);
 
@@ -115,11 +145,41 @@ return Inertia::render('Tables/Edit', [
     }
 
     /**
+     * Vérifier la disponibilité d'un numéro de table
+     */
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'table_number' => 'required|string',
+            'restaurant_id' => 'required|exists:restaurants,id',
+            'except' => 'nullable|integer',
+        ]);
+
+        $query = Table::where('restaurant_id', $request->restaurant_id)
+            ->where('table_number', $request->table_number);
+
+        if ($request->has('except')) {
+            $query->where('id', '!=', $request->except);
+        }
+
+        $exists = $query->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists 
+                ? 'Ce numéro de table est déjà utilisé dans ce restaurant.' 
+                : 'Ce numéro de table est disponible.'
+        ]);
+    }
+
+    /**
      * Supprimer une table
      */
     public function destroy(Table $table)
     {
         $table->delete();
-        return redirect('/admin/tables')->with('success', 'Table supprimée avec succès.');
+
+        return redirect()->route('admin.tables.index')
+            ->with('success', 'Table supprimée avec succès.');
     }
 }

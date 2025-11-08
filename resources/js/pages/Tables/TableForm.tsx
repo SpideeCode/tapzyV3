@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
+import debounce from 'lodash/debounce';
 
 interface Restaurant {
     id: number;
@@ -15,17 +16,100 @@ interface TableFormProps {
         restaurant_id: number;
     };
     restaurants: Restaurant[];
+    existingTables?: Array<{
+        id: number;
+        table_number: string;
+        restaurant_id: number;
+    }>;
 }
 
-export default function TableForm({ table, restaurants }: TableFormProps) {
+export default function TableForm({ table, restaurants, existingTables = [] }: TableFormProps) {
+    const [isChecking, setIsChecking] = useState(false);
+    const [tableStatus, setTableStatus] = useState<{ available: boolean | null; message: string }>({ 
+        available: null, 
+        message: '' 
+    });
+
     const form = useForm({
         table_number: table?.table_number || '',
         restaurant_id: table?.restaurant_id || '',
         qr_code: null as File | null,
     });
 
+    // Vérification en temps réel de la disponibilité du numéro de table
+    const checkTableNumber = useCallback(
+        debounce(async (tableNumber: string, restaurantId: string | number) => {
+            if (!tableNumber || !restaurantId) {
+                setTableStatus({ available: null, message: '' });
+                return;
+            }
+
+            try {
+                setIsChecking(true);
+                const response = await fetch(
+                    `/admin/tables/check-availability?table_number=${encodeURIComponent(tableNumber)}&restaurant_id=${restaurantId}${table?.id ? `&except=${table.id}` : ''}`
+                );
+                const data = await response.json();
+                setTableStatus({
+                    available: data.available,
+                    message: data.message || ''
+                });
+                return data;
+            } catch (error) {
+                console.error('Erreur lors de la vérification du numéro de table:', error);
+                setTableStatus({
+                    available: null,
+                    message: 'Erreur lors de la vérification'
+                });
+            } finally {
+                setIsChecking(false);
+            }
+        }, 500),
+        [table?.id]
+    );
+
+    // Effet pour déclencher la vérification quand le numéro de table ou le restaurant change
+    useEffect(() => {
+        if (form.data.table_number && form.data.restaurant_id) {
+            checkTableNumber(form.data.table_number, form.data.restaurant_id);
+        } else {
+            setTableStatus({ available: null, message: '' });
+        }
+
+        return () => {
+            checkTableNumber.cancel();
+        };
+    }, [form.data.table_number, form.data.restaurant_id, checkTableNumber]);
+
+    const validateForm = () => {
+        form.clearErrors();
+        let isValid = true;
+
+        if (!form.data.restaurant_id) {
+            form.setError('restaurant_id', 'Veuillez sélectionner un restaurant');
+            isValid = false;
+        }
+
+        if (!form.data.table_number.trim()) {
+            form.setError('table_number', 'Le numéro de table est requis');
+            isValid = false;
+        } else if (tableStatus.available === false) {
+            form.setError('table_number', tableStatus.message || 'Ce numéro de table est déjà utilisé');
+            isValid = false;
+        } else if (isChecking) {
+            form.setError('table_number', 'Vérification en cours...');
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
         
         const formData = new FormData();
         formData.append('table_number', form.data.table_number);
@@ -41,11 +125,20 @@ export default function TableForm({ table, restaurants }: TableFormProps) {
             }, {
                 forceFormData: true,
                 onSuccess: () => form.reset(),
+                onError: (errors) => {
+                    if (errors.table_number) {
+                        form.setError('table_number', errors.table_number);
+                    }
+                },
             });
         } else {
-            router.post('/admin/tables', form.data, {
-                forceFormData: true,
+            router.post('/admin/tables', formData, {
                 onSuccess: () => form.reset(),
+                onError: (errors) => {
+                    if (errors.table_number) {
+                        form.setError('table_number', errors.table_number);
+                    }
+                },
             });
         }
     };
@@ -78,15 +171,54 @@ export default function TableForm({ table, restaurants }: TableFormProps) {
                     <label htmlFor="table_number" className="block text-sm font-medium text-gray-700">
                         Numéro de table
                     </label>
+                    <div className="relative">
                     <input
                         type="text"
                         id="table_number"
                         value={form.data.table_number}
-                        onChange={(e) => form.setData('table_number', e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        onChange={(e) => {
+                            form.setData('table_number', e.target.value);
+                            // Réinitialiser l'état de disponibilité quand l'utilisateur tape
+                            if (e.target.value !== form.data.table_number) {
+                                setTableStatus({ available: null, message: '' });
+                            }
+                        }}
+                        className={`mt-1 block w-full rounded-md ${
+                            tableStatus.available === false 
+                                ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                                : tableStatus.available === true 
+                                    ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                                    : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                        } shadow-sm focus:ring-2 focus:ring-offset-2 sm:text-sm`}
                         required
+                        disabled={isChecking}
                     />
-                    {form.errors.table_number && <p className="mt-1 text-sm text-red-600">{form.errors.table_number}</p>}
+                    {isChecking && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    )}
+                    {!isChecking && tableStatus.available === true && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    )}
+                    {!isChecking && tableStatus.available === false && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    )}
+                    {form.errors.table_number && (
+                        <p className="mt-1 text-sm text-red-600">{form.errors.table_number}</p>
+                    )}
+                    </div>
                 </div>
 
                 <div className="sm:col-span-6">

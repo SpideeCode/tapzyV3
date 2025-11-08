@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('restaurants', AdminRestaurantController::class);
         Route::resource('tables', AdminTableController::class);
         Route::post('tables/{table}/regenerate-qr', [AdminTableController::class, 'regenerateQrCode'])->name('admin.tables.regenerate-qr');
+        Route::get('tables/check-availability', [AdminTableController::class, 'checkAvailability'])->name('admin.tables.check-availability');
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::resource('items', AdminItemController::class)->except(['show']);
         Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index','show','update']);

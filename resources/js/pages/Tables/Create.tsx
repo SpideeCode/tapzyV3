@@ -8,11 +8,18 @@ interface Restaurant {
     nom: string;
 }
 
-interface CreateTableProps {
-    restaurants: Restaurant[];
+interface Table {
+    id: number;
+    table_number: string;
+    restaurant_id: number;
 }
 
-export default function Create({ restaurants }: CreateTableProps) {
+interface CreateTableProps {
+    restaurants: Restaurant[];
+    existingTables: Table[];
+}
+
+export default function Create({ restaurants, existingTables }: CreateTableProps) {
     return (
         <AdminLayout>
             <Head title="Ajouter une table" />
@@ -22,7 +29,7 @@ export default function Create({ restaurants }: CreateTableProps) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Ajouter une table</h2>
-                            <TableForm restaurants={restaurants} />
+                            <TableForm restaurants={restaurants} existingTables={existingTables} />
                         </div>
                     </div>
                 </div>
