@@ -1,6 +1,19 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import Pagination from '@/components/pagination';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 interface Restaurant {
     id: number;
@@ -48,150 +61,118 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function UsersIndex({ users }: UsersIndexProps) {
+    const getRoleBadgeVariant = (role: string) => {
+        switch (role) {
+            case 'admin':
+                return 'destructive';
+            case 'manager':
+                return 'info';
+            default:
+                return 'success';
+        }
+    };
+
     return (
         <AdminLayout>
             <Head title="Gestion des utilisateurs" />
             
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-800">Gestion des utilisateurs</h2>
-                                <Link 
-                                    href="/admin/users/create" 
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
-                                >
-                                    Ajouter un utilisateur
-                                </Link>
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-2xl font-semibold">Gestion des utilisateurs</CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Gérez les utilisateurs et leurs permissions
+                                    </CardDescription>
+                                </div>
+                                <Button asChild>
+                                    <Link href="/admin/users/create">
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Ajouter un utilisateur
+                                    </Link>
+                                </Button>
                             </div>
-
+                        </CardHeader>
+                        <CardContent>
                             {users.data.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {users.data.map((user) => (
-                                                <tr key={user.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-500">{user.email}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                            ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                                                              user.role === 'manager' ? 'bg-blue-100 text-blue-800' : 
-                                                              'bg-green-100 text-green-800'}`}>
-                                                            {roleLabels[user.role] || user.role}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-500">
+                                <div className="space-y-4">
+                                    <div className="rounded-md border border-border overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Nom</TableHead>
+                                                    <TableHead>Email</TableHead>
+                                                    <TableHead>Rôle</TableHead>
+                                                    <TableHead>Restaurant</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {users.data.map((user) => (
+                                                    <TableRow key={user.id}>
+                                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                                        <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={getRoleBadgeVariant(user.role) as any}>
+                                                                {roleLabels[user.role] || user.role}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground">
                                                             {user.restaurant?.name || 'Aucun'}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                        <Link 
-                                                            href={`/admin/users/${user.id}/edit`}
-                                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                                        >
-                                                            Modifier
-                                                        </Link>
-                                                        <Link 
-                                                            href={`/admin/users/${user.id}`}
-                                                            method="delete"
-                                                            as="button"
-                                                            className="text-red-600 hover:text-red-900"
-                                                            onBefore={() => {
-                                                                return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');
-                                                            }}
-                                                        >
-                                                            Supprimer
-                                                        </Link>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-
-                                    {/* Pagination */}
-                                    {users.links.length > 3 && (
-                                        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                                            <div className="flex-1 flex justify-between sm:hidden">
-{users.links[0]?.url && (
-                                                    <Link 
-                                                        href={users.links[0].url as string} 
-                                                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                                    >
-                                                        Précédent
-                                                    </Link>
-                                                )}
-                                                {users.links[users.links.length - 1]?.url && (
-                                                    <Link 
-                                                        href={users.links[users.links.length - 1].url as string} 
-                                                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                                    >
-                                                        Suivant
-                                                    </Link>
-                                                )}
-                                            </div>
-                                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                                <div>
-                                                    <p className="text-sm text-gray-700">
-                                                        Affichage de <span className="font-medium">{users.from}</span> à <span className="font-medium">{users.to}</span> sur <span className="font-medium">{users.total}</span> résultats
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                                        {users.links.map((link, index) => (
-                                                            <React.Fragment key={index}>
-                                                                {link.url ? (
-                                                                    <Link
-                                                                        href={link.url}
-                                                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                                                            link.active 
-                                                                                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' 
-                                                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                                        }`}
-                                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                                    />
-                                                                ) : (
-                                                                    <span 
-                                                                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-                                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                                    />
-                                                                )}
-                                                            </React.Fragment>
-                                                        ))}
-                                                    </nav>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="ghost" size="sm" asChild>
+                                                                    <Link href={`/admin/users/${user.id}/edit`}>
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm"
+                                                                    className="text-destructive hover:text-destructive"
+                                                                    asChild
+                                                                >
+                                                                    <Link 
+                                                                        href={`/admin/users/${user.id}`}
+                                                                        method="delete"
+                                                                        as="button"
+                                                                        onBefore={() => {
+                                                                            return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    <Pagination 
+                                        links={users.links} 
+                                        from={users.from} 
+                                        to={users.to} 
+                                        total={users.total} 
+                                    />
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-500">Aucun utilisateur enregistré pour le moment.</p>
-                                    <Link
-                                        href="/admin/users/create"
-                                        className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 mt-4"
-                                    >
-                                        Ajouter votre premier utilisateur
-                                    </Link>
+                                    <p className="text-muted-foreground mb-4">Aucun utilisateur enregistré pour le moment.</p>
+                                    <Button asChild>
+                                        <Link href="/admin/users/create">
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Ajouter votre premier utilisateur
+                                        </Link>
+                                    </Button>
                                 </div>
                             )}
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

@@ -1,5 +1,19 @@
 import React from 'react';
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import InputError from '@/components/input-error';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Restaurant {
     id: number;
@@ -13,7 +27,7 @@ interface Category {
 
 interface ItemFormData {
     restaurant_id: string;
-    category_id: string | null;
+    category_id: string;
     name: string;
     description: string;
     price: string;
@@ -37,7 +51,7 @@ interface ItemFormProps {
 export default function ItemForm({ item, restaurants, categories }: ItemFormProps) {
     const { data, setData, post, put, processing, errors } = useForm<ItemFormData>({
         restaurant_id: item?.restaurant_id ? String(item.restaurant_id) : '',
-        category_id: item?.category_id ? String(item.category_id) : '',
+        category_id: item?.category_id ? String(item.category_id) : 'none',
         name: item?.name || '',
         description: item?.description || '',
         price: item?.price ? item.price.toString() : '0',
@@ -49,7 +63,7 @@ export default function ItemForm({ item, restaurants, categories }: ItemFormProp
         
         const formData = {
             restaurant_id: data.restaurant_id,
-            category_id: data.category_id || null,
+            category_id: data.category_id && data.category_id !== 'none' ? data.category_id : null,
             name: data.name,
             description: data.description,
             price: parseFloat(data.price) || 0,
@@ -64,128 +78,152 @@ export default function ItemForm({ item, restaurants, categories }: ItemFormProp
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div>
-                    <label htmlFor="restaurant_id" className="block text-sm font-medium text-gray-700">Restaurant</label>
-                    <select
-                        id="restaurant_id"
-                        value={data.restaurant_id}
-                        onChange={(e) => setData('restaurant_id', e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                        required
-                    >
-                        <option value="">Sélectionnez un restaurant</option>
-                        {restaurants.map((restaurant) => (
-                            <option key={restaurant.id} value={restaurant.id}>
-                                {restaurant.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.restaurant_id && <p className="mt-2 text-sm text-red-600">{errors.restaurant_id}</p>}
-                </div>
-                
-                <div>
-                    <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">Catégorie</label>
-                    <select
-                        id="category_id"
-                        value={data.category_id || ''}
-                        onChange={(e) => setData('category_id', e.target.value || null)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    >
-                        <option value="">Aucune catégorie</option>
-                        {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                                {category.name}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.category_id && <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>}
-                </div>
-
-                <div className="sm:col-span-6">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                        Nom <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        required
-                    />
-                    {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                </div>
-
-                <div className="sm:col-span-6">
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                        Description
-                    </label>
-                    <textarea
-                        id="description"
-                        rows={3}
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-                </div>
-
-                <div className="sm:col-span-3">
-                    <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                        Prix (€) <span className="text-red-500">*</span>
-                    </label>
-                    <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">€</span>
+        <Card className="border-border/50 shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-2xl font-semibold">
+                    {item?.id ? 'Modifier l\'article' : 'Créer un nouvel article'}
+                </CardTitle>
+                <CardDescription>
+                    {item?.id 
+                        ? 'Mettez à jour les informations de l\'article' 
+                        : 'Remplissez les informations pour créer un nouvel article'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="restaurant_id">
+                                Restaurant <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                                value={data.restaurant_id || ''}
+                                onValueChange={(value) => setData('restaurant_id', value)}
+                                required
+                            >
+                                <SelectTrigger id="restaurant_id" className="w-full">
+                                    <SelectValue placeholder="Sélectionnez un restaurant" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {restaurants.map((restaurant) => (
+                                        <SelectItem key={restaurant.id} value={String(restaurant.id)}>
+                                            {restaurant.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.restaurant_id} />
                         </div>
-                        <input
-                            type="number"
-                            id="price"
-                            min="0"
-                            step="0.01"
-                            value={data.price}
-                            onChange={(e) => setData('price', e.target.value)}
-                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
-                            placeholder="0.00"
-                            required
-                        />
-                    </div>
-                    {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
-                </div>
 
-                <div className="sm:col-span-6">
-                    <div className="flex items-center">
-                        <input
-                            id="available"
-                            type="checkbox"
-                            checked={data.available}
-                            onChange={(e) => setData('available', e.target.checked)}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="available" className="ml-2 block text-sm text-gray-700">
-                            Disponible à la vente
-                        </label>
-                    </div>
-                </div>
-            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="category_id">Catégorie</Label>
+                            <Select
+                                value={data.category_id || 'none'}
+                                onValueChange={(value) => setData('category_id', value)}
+                            >
+                                <SelectTrigger id="category_id" className="w-full">
+                                    <SelectValue placeholder="Aucune catégorie" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">Aucune catégorie</SelectItem>
+                                    {categories.map((category) => (
+                                        <SelectItem key={category.id} value={String(category.id)}>
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.category_id} />
+                        </div>
 
-            <div className="flex justify-end space-x-3 pt-6">
-                <a
-                    href="/admin/items"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    Annuler
-                </a>
-                <button
-                    type="submit"
-                    disabled={processing}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                    {processing ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-            </div>
-        </form>
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="name">
+                                Nom <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                type="text"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="Nom de l'article"
+                                required
+                                className="w-full"
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                rows={4}
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                placeholder="Description de l'article (optionnel)"
+                                className="w-full"
+                            />
+                            <InputError message={errors.description} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="price">
+                                Prix (€) <span className="text-destructive">*</span>
+                            </Label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span className="text-muted-foreground text-sm">€</span>
+                                </div>
+                                <Input
+                                    type="number"
+                                    id="price"
+                                    min="0"
+                                    step="0.01"
+                                    value={data.price}
+                                    onChange={(e) => setData('price', e.target.value)}
+                                    placeholder="0.00"
+                                    required
+                                    className="w-full pl-7"
+                                />
+                            </div>
+                            <InputError message={errors.price} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Statut</Label>
+                            <div className="flex items-center space-x-3 pt-2">
+                                <Checkbox
+                                    id="available"
+                                    checked={data.available}
+                                    onCheckedChange={(checked) => setData('available', checked === true)}
+                                />
+                                <label 
+                                    htmlFor="available" 
+                                    className="text-sm font-medium leading-none cursor-pointer"
+                                >
+                                    Disponible à la vente
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            asChild
+                        >
+                            <Link href="/admin/items">Annuler</Link>
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="min-w-[120px]"
+                        >
+                            {processing ? 'Enregistrement...' : 'Enregistrer'}
+                        </Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
     );
 }

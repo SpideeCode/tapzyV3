@@ -1,6 +1,18 @@
 import React from 'react';
 import { Head, Link } from "@inertiajs/react";
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Pagination from '@/components/pagination';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 interface Restaurant {
     id: number;
@@ -22,108 +34,107 @@ interface Props {
 }
 
 export default function AdminRestaurantsIndex({ restaurants, pagination }: Props) {
+    const links = [];
+    if (pagination.last_page > 1) {
+        for (let i = 1; i <= pagination.last_page; i++) {
+            links.push({
+                url: `/admin/restaurants?page=${i}`,
+                label: String(i),
+                active: i === pagination.current_page,
+            });
+        }
+    }
+
     return (
         <AdminLayout>
             <Head title="Gestion des restaurants" />
             
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-800">Gestion des restaurants</h2>
-                                <Link 
-                                    href="/admin/restaurants/create" 
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
-                                >
-                                    Ajouter un restaurant
-                                </Link>
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-2xl font-semibold">Gestion des restaurants</CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Gérez les restaurants et leurs informations
+                                    </CardDescription>
+                                </div>
+                                <Button asChild>
+                                    <Link href="/admin/restaurants/create">
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Ajouter un restaurant
+                                    </Link>
+                                </Button>
                             </div>
-
+                        </CardHeader>
+                        <CardContent>
                             {restaurants.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créé le</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {restaurants.map((restaurant) => (
-                                                <tr key={restaurant.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{restaurant.name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {new Date(restaurant.created_at).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                        <Link 
-                                                            href={`/admin/restaurants/${restaurant.id}/edit`}
-                                                            className="text-indigo-600 hover:text-indigo-900"
-                                                        >
-                                                            Modifier
-                                                        </Link>
-                                                        <Link
-                                                            href={`/admin/restaurants/${restaurant.id}`}
-                                                            method="delete"
-                                                            as="button"
-                                                            className="text-red-600 hover:text-red-900 ml-4"
-                                                            onBefore={() => {
-                                                                return confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ?');
-                                                            }}
-                                                        >
-                                                            Supprimer
-                                                        </Link>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                    
-                                    {/* Pagination */}
-                                    {pagination.last_page > 1 && (
-                                        <div className="mt-4 flex justify-between items-center">
-                                            <div className="text-sm text-gray-700">
-                                                Affichage de <span className="font-medium">{restaurants.length}</span> sur <span className="font-medium">{pagination.total}</span> restaurants
-                                            </div>
-                                            <div className="flex space-x-2">
-                                                {pagination.current_page > 1 && (
-                                                    <Link 
-                                                        href={`/admin/restaurants?page=${pagination.current_page - 1}`}
-                                                        className="px-3 py-1 border rounded-md text-sm font-medium"
-                                                    >
-                                                        Précédent
-                                                    </Link>
-                                                )}
-                                                
-                                                {pagination.current_page < pagination.last_page && (
-                                                    <Link 
-                                                        href={`/admin/restaurants?page=${pagination.current_page + 1}`}
-                                                        className="px-3 py-1 border rounded-md text-sm font-medium"
-                                                    >
-                                                        Suivant
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </div>
+                                <div className="space-y-4">
+                                    <div className="rounded-md border border-border overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Nom</TableHead>
+                                                    <TableHead>Créé le</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {restaurants.map((restaurant) => (
+                                                    <TableRow key={restaurant.id}>
+                                                        <TableCell className="font-medium">{restaurant.name}</TableCell>
+                                                        <TableCell className="text-muted-foreground">
+                                                            {new Date(restaurant.created_at).toLocaleDateString('fr-FR')}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="ghost" size="sm" asChild>
+                                                                    <Link href={`/admin/restaurants/${restaurant.id}/edit`}>
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm"
+                                                                    className="text-destructive hover:text-destructive"
+                                                                    asChild
+                                                                >
+                                                                    <Link
+                                                                        href={`/admin/restaurants/${restaurant.id}`}
+                                                                        method="delete"
+                                                                        as="button"
+                                                                        onBefore={() => {
+                                                                            return confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ?');
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    {links.length > 0 && (
+                                        <Pagination links={links} />
                                     )}
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-500">Aucun restaurant enregistré pour le moment.</p>
-                                    <Link
-                                        href="/admin/restaurants/create"
-                                        className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                    >
-                                        Ajouter un restaurant
-                                    </Link>
+                                    <p className="text-muted-foreground mb-4">Aucun restaurant enregistré pour le moment.</p>
+                                    <Button asChild>
+                                        <Link href="/admin/restaurants/create">
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Ajouter un restaurant
+                                        </Link>
+                                    </Button>
                                 </div>
                             )}
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

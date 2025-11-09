@@ -1,6 +1,18 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { ArrowLeft, Edit, Package } from 'lucide-react';
 
 interface Item {
     id: number;
@@ -27,131 +39,122 @@ export default function Show({ category }: ShowProps) {
         <AdminLayout>
             <Head title={`Détails de ${category.name}`} />
             
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Détails de la catégorie : {category.name}
-                        </h1>
-                        <div className="flex space-x-2">
-                            <Link
-                                href={route('admin.categories.edit', category.id)}
-                                className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition"
-                            >
-                                Modifier
-                            </Link>
-                            <Link
-                                href={route('admin.categories.index')}
-                                className="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-300 focus:outline-none focus:border-gray-300 focus:ring focus:ring-gray-200 disabled:opacity-25 transition"
-                            >
-                                Retour à la liste
-                            </Link>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-                        <div className="px-4 py-5 sm:px-6">
-                            <h2 className="text-lg font-medium text-gray-900">
-                                Informations de la catégorie
-                            </h2>
-                        </div>
-                        <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-                                <div className="sm:col-span-1">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        Nom
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {category.name}
-                                    </dd>
-                                </div>
-                                <div className="sm:col-span-1">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        Statut
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                            category.is_active 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {category.is_active ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div className="sm:col-span-1">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        Ordre d'affichage
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900">
-                                        {category.order}
-                                    </dd>
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <dt className="text-sm font-medium text-gray-500">
-                                        Description
-                                    </dt>
-                                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-line">
-                                        {category.description || 'Aucune description'}
-                                    </dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/categories">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Retour à la liste
+                        </Link>
+                    </Button>
 
-                    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                        <div className="px-4 py-5 sm:px-6">
-                            <h2 className="text-lg font-medium text-gray-900">
-                                Articles de cette catégorie
-                            </h2>
-                            <p className="mt-1 text-sm text-gray-500">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-2xl font-semibold">
+                                        {category.name}
+                                    </CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Détails de la catégorie
+                                    </CardDescription>
+                                </div>
+                                <Button asChild>
+                                    <Link href={`/admin/categories/${category.id}/edit`}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Modifier
+                                    </Link>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Nom</label>
+                                    <p className="mt-1 text-sm font-medium">{category.name}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Statut</label>
+                                    <div className="mt-1">
+                                        <Badge variant={category.is_active ? 'success' : 'destructive'}>
+                                            {category.is_active ? 'Active' : 'Inactive'}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Ordre d'affichage</label>
+                                    <p className="mt-1 text-sm">{category.order}</p>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-medium text-muted-foreground">Description</label>
+                                    <p className="mt-1 text-sm whitespace-pre-line">
+                                        {category.description || 'Aucune description'}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Package className="h-5 w-5" />
+                                <CardTitle className="text-xl font-semibold">
+                                    Articles de cette catégorie
+                                </CardTitle>
+                            </div>
+                            <CardDescription>
                                 {category.items.length} article(s) trouvé(s)
-                            </p>
-                        </div>
-                        {category.items.length > 0 ? (
-                            <div className="border-t border-gray-200">
-                                <ul className="divide-y divide-gray-200">
-                                    {category.items.map((item) => (
-                                        <li key={item.id} className="px-4 py-4 sm:px-6">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-indigo-600 truncate">
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {category.items.length > 0 ? (
+                                <div className="rounded-md border border-border overflow-hidden">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Article</TableHead>
+                                                <TableHead>Prix</TableHead>
+                                                <TableHead>Statut</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {category.items.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell className="font-medium">
                                                         {item.name}
-                                                    </p>
-                                                    <div className="flex items-center text-sm text-gray-500">
-                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                            item.is_available 
-                                                                ? 'bg-green-100 text-green-800' 
-                                                                : 'bg-red-100 text-red-800'
-                                                        }`}>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.price.toFixed(2)} €
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={item.is_available ? 'success' : 'destructive'}>
                                                             {item.is_available ? 'Disponible' : 'Indisponible'}
-                                                        </span>
-                                                        <span className="ml-2">
-                                                            {item.price.toFixed(2)} €
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="ml-2 flex-shrink-0 flex">
-                                                    <Link
-                                                        href={route('admin.items.edit', item.id)}
-                                                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                                                    >
-                                                        Voir
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ) : (
-                            <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                                <p className="text-sm text-gray-500">
-                                    Aucun article n'est associé à cette catégorie pour le moment.
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button variant="ghost" size="sm" asChild>
+                                                            <Link href={`/admin/items/${item.id}/edit`}>
+                                                                Voir
+                                                            </Link>
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                                    <p className="text-muted-foreground">
+                                        Aucun article n'est associé à cette catégorie pour le moment.
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

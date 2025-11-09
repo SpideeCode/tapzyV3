@@ -1,6 +1,11 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RestaurantFormProps {
     restaurant?: {
@@ -33,50 +38,56 @@ export default function RestaurantForm({ restaurant }: RestaurantFormProps) {
             <Head title={restaurant ? 'Modifier le restaurant' : 'Ajouter un restaurant'} />
             
             <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <CardTitle className="text-2xl font-semibold">
                                 {restaurant ? 'Modifier le restaurant' : 'Ajouter un nouveau restaurant'}
-                            </h2>
-                            
+                            </CardTitle>
+                            <CardDescription>
+                                {restaurant 
+                                    ? 'Mettez à jour les informations du restaurant' 
+                                    : 'Remplissez les informations pour créer un nouveau restaurant'}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div>
-                                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                                            Nom du restaurant *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="name"
-                                            value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            required
-                                            autoFocus
-                                        />
-                                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">
+                                        Nom du restaurant <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        id="name"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        placeholder="Nom du restaurant"
+                                        required
+                                        autoFocus
+                                        className="w-full"
+                                    />
+                                    <InputError message={errors.name} />
                                 </div>
 
-                                <div className="flex justify-end space-x-3 pt-4">
-                                    <Link
-                                        href="/admin/restaurants"
-                                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        asChild
                                     >
-                                        Annuler
-                                    </Link>
-                                    <button
+                                        <Link href="/admin/restaurants">Annuler</Link>
+                                    </Button>
+                                    <Button
                                         type="submit"
                                         disabled={processing}
-                                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                        className="min-w-[120px]"
                                     >
                                         {processing ? 'Enregistrement...' : 'Enregistrer'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

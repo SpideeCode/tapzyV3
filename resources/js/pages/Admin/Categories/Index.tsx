@@ -1,6 +1,19 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import Pagination from '@/components/pagination';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 interface Category {
     id: number;
@@ -27,111 +40,102 @@ export default function Index({ categories }: IndexProps) {
         <AdminLayout>
             <Head title="Gestion des catégories" />
             
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">Gestion des catégories</h1>
-                        <Link 
-                            href="/admin/categories/create"
-                            className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition"
-                        >
-                            Nouvelle catégorie
-                        </Link>
-                    </div>
-
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Nom
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ordre
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Statut
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Articles
-                                        </th>
-                                        <th scope="col" className="relative px-6 py-3">
-                                            <span className="sr-only">Actions</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {categories.data.map((category) => (
-                                        <tr key={category.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {category.name}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                    {category.description || 'Aucune description'}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {category.order}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${category.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                    {category.is_active ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {category.items_count || 0}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <Link
-                                                    href={`/admin/categories/${category.id}/edit`}
-                                                    className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                                >
-                                                    Modifier
-                                                </Link>
-                                                <Link
-                                                    href={`/admin/categories/${category.id}`}
-                                                    method="delete"
-                                                    as="button"
-                                                    className="text-red-600 hover:text-red-900"
-                                                    onBefore={() => {
-                                                        return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');
-                                                    }}
-                                                >
-                                                    Supprimer
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        {categories.links && categories.links.length > 0 && (
-                            <div className="px-6 py-4">
-                                <div className="flex items-center justify-between">
-                                    {categories.links.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            href={link.url || '#'}
-                                            className={`px-4 py-2 rounded-md ${
-                                                link.active
-                                                    ? 'bg-indigo-600 text-white'
-                                                    : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-2xl font-semibold">Gestion des catégories</CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Organisez vos articles par catégories
+                                    </CardDescription>
                                 </div>
+                                <Button asChild>
+                                    <Link href="/admin/categories/create">
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Nouvelle catégorie
+                                    </Link>
+                                </Button>
                             </div>
-                        )}
-                    </div>
+                        </CardHeader>
+                        <CardContent>
+                            {categories.data.length > 0 ? (
+                                <div className="space-y-4">
+                                    <div className="rounded-md border border-border overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Nom</TableHead>
+                                                    <TableHead>Description</TableHead>
+                                                    <TableHead>Ordre</TableHead>
+                                                    <TableHead>Statut</TableHead>
+                                                    <TableHead>Articles</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {categories.data.map((category) => (
+                                                    <TableRow key={category.id}>
+                                                        <TableCell className="font-medium">{category.name}</TableCell>
+                                                        <TableCell className="text-muted-foreground max-w-xs truncate">
+                                                            {category.description || 'Aucune description'}
+                                                        </TableCell>
+                                                        <TableCell>{category.order}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={category.is_active ? 'success' : 'destructive'}>
+                                                                {category.is_active ? 'Active' : 'Inactive'}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>{category.items_count || 0}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="ghost" size="sm" asChild>
+                                                                    <Link href={`/admin/categories/${category.id}/edit`}>
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm"
+                                                                    className="text-destructive hover:text-destructive"
+                                                                    asChild
+                                                                >
+                                                                    <Link
+                                                                        href={`/admin/categories/${category.id}`}
+                                                                        method="delete"
+                                                                        as="button"
+                                                                        onBefore={() => {
+                                                                            return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Link>
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    {categories.links && categories.links.length > 0 && (
+                                        <Pagination links={categories.links} />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-muted-foreground mb-4">Aucune catégorie enregistrée pour le moment.</p>
+                                    <Button asChild>
+                                        <Link href="/admin/categories/create">
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Créer votre première catégorie
+                                        </Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

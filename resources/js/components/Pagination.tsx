@@ -1,106 +1,122 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
 
 interface PaginationProps {
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
+    links: PaginationLink[];
+    from?: number;
+    to?: number;
+    total?: number;
     className?: string;
 }
 
-export function Pagination({ links, className = '' }: PaginationProps) {
-    if (links.length <= 3) {
+export default function Pagination({ links, from, to, total, className }: PaginationProps) {
+    if (!links || links.length <= 1) {
         return null;
     }
 
+    // Laravel pagination typically has first, prev, pages, next, last
+    // We'll take the first as prev and last as next, and everything in between as page links
+    const prevLink = links.length > 0 ? links[0] : null;
+    const nextLink = links.length > 1 ? links[links.length - 1] : null;
+    const pageLinks = links.length > 2 ? links.slice(1, -1) : [];
+
     return (
-        <div className={`flex items-center justify-between ${className}`}>
-            <div className="flex-1 flex justify-between sm:hidden">
-                {links[0].url && (
-                    <Link
-                        href={links[0].url}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                        Précédent
-                    </Link>
-                )}
-                {links[links.length - 1].url && (
-                    <Link
-                        href={links[links.length - 1].url}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                        Suivant
-                    </Link>
-                )}
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p className="text-sm text-gray-700">
-                        Affichage de <span className="font-medium">{links[1].label.split(' ')[1]}</span> à{' '}
-                        <span className="font-medium">{links[links.length - 2].label.split(' ')[3]}</span> sur{' '}
-                        <span className="font-medium">{links[links.length - 1].label.split(' ')[1]}</span> résultats
-                    </p>
+        <div className={cn("flex items-center justify-between border-t border-border pt-4", className)}>
+            {from && to && total && (
+                <div className="flex-1 flex justify-between sm:hidden">
+                    {prevLink?.url && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={prevLink.url}>Précédent</Link>
+                        </Button>
+                    )}
+                    {nextLink?.url && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={nextLink.url}>Suivant</Link>
+                        </Button>
+                    )}
                 </div>
+            )}
+
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        {links.map((link, index) => {
-                            if (index === 0) {
-                                return (
-                                    <Link
-                                        key={index}
-                                        href={link.url || '#'}
-                                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                                            !link.url ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                        aria-label="Précédent"
-                                    >
-                                        <span className="sr-only">Précédent</span>
-                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                    </Link>
-                                );
-                            }
+                    {from && to && total && (
+                        <p className="text-sm text-muted-foreground">
+                            Affichage de <span className="font-medium text-foreground">{from}</span> à{' '}
+                            <span className="font-medium text-foreground">{to}</span> sur{' '}
+                            <span className="font-medium text-foreground">{total}</span> résultats
+                        </p>
+                    )}
+                </div>
+                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    {prevLink?.url && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-r-none"
+                            asChild
+                        >
+                            <Link href={prevLink.url}>
+                                <ChevronLeft className="h-4 w-4" />
+                                <span className="sr-only">Précédent</span>
+                            </Link>
+                        </Button>
+                    )}
 
-                            if (index === links.length - 1) {
-                                return (
-                                    <Link
-                                        key={index}
-                                        href={link.url || '#'}
-                                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                                            !link.url ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                        aria-label="Suivant"
-                                    >
-                                        <span className="sr-only">Suivant</span>
-                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                    </Link>
-                                );
-                            }
-
+                    {pageLinks.map((link, index) => {
+                        if (link.url === null) {
                             return (
-                                <Link
+                                <span
                                     key={index}
-                                    href={link.url || '#'}
-                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                        link.active
-                                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                    }`}
+                                    className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent"
                                 >
-                                    {link.label}
-                                </Link>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </span>
                             );
-                        })}
-                    </nav>
-                </div>
+                        }
+
+                        return (
+                            <Button
+                                key={index}
+                                variant={link.active ? "default" : "outline"}
+                                size="sm"
+                                className={cn(
+                                    "rounded-none",
+                                    link.active && "z-10 bg-primary text-primary-foreground ring-1 ring-primary"
+                                )}
+                                asChild
+                            >
+                                <Link
+                                    href={link.url}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                />
+                            </Button>
+                        );
+                    })}
+
+                    {nextLink?.url && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-l-none"
+                            asChild
+                        >
+                            <Link href={nextLink.url}>
+                                <span className="sr-only">Suivant</span>
+                                <ChevronRight className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    )}
+                </nav>
             </div>
         </div>
     );
 }
-
-export default Pagination;

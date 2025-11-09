@@ -1,9 +1,12 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
-import { Button } from '@/Components/Button';
-import Input from '@/Components/Input';
-import InputError from '@/Components/InputError';
-import Label from '@/Components/Label';
+import { useForm, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import InputError from '@/components/input-error';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface CategoryFormProps {
     category?: {
@@ -34,77 +37,109 @@ export default function CategoryForm({ category }: CategoryFormProps) {
     };
 
     return (
-        <form onSubmit={submit} className="space-y-6">
-            <div>
-                <Label htmlFor="name" value="Nom de la catégorie" />
-                <Input
-                    id="name"
-                    type="text"
-                    className="mt-1 block w-full"
-                    value={data.name}
-                    onChange={(e) => setData('name', e.target.value)}
-                    required
-                    autoFocus
-                />
-                <InputError message={errors.name} className="mt-2" />
-            </div>
-
-            <div>
-                <Label htmlFor="description" value="Description" />
-                <textarea
-                    id="description"
-                    className="mt-1 block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
-                    rows={3}
-                    value={data.description || ''}
-                    onChange={(e) => setData('description', e.target.value)}
-                />
-                <InputError message={errors.description} className="mt-2" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label htmlFor="order" value="Ordre d'affichage" />
-                    <Input
-                        id="order"
-                        type="number"
-                        className="mt-1 block w-full"
-                        value={data.order}
-                        onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
-                    />
-                    <InputError message={errors.order} className="mt-2" />
-                </div>
-
-                <div className="flex items-center">
-                    <div className="flex items-center h-5">
-                        <input
-                            id="is_active"
-                            type="checkbox"
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                            checked={data.is_active}
-                            onChange={(e) => setData('is_active', e.target.checked)}
+        <Card className="border-border/50 shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-2xl font-semibold">
+                    {category?.id ? 'Modifier la catégorie' : 'Créer une nouvelle catégorie'}
+                </CardTitle>
+                <CardDescription>
+                    {category?.id 
+                        ? 'Mettez à jour les informations de la catégorie' 
+                        : 'Remplissez les informations pour créer une nouvelle catégorie'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={submit} className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">
+                            Nom de la catégorie <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="name"
+                            type="text"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="Nom de la catégorie"
+                            required
+                            autoFocus
+                            className="w-full"
                         />
+                        <InputError message={errors.name} />
                     </div>
-                    <div className="ml-3 text-sm">
-                        <label htmlFor="is_active" className="font-medium text-gray-700">
-                            Catégorie active
-                        </label>
-                        <p className="text-gray-500">Si désactivé, la catégorie ne sera pas visible sur le site.</p>
-                    </div>
-                </div>
-            </div>
 
-            <div className="flex items-center justify-end mt-4">
-                <Button
-                    type="button"
-                    className="bg-gray-100 text-gray-800 hover:bg-gray-200 mr-4"
-                    onClick={() => window.history.back()}
-                >
-                    Annuler
-                </Button>
-                <Button type="submit" disabled={processing}>
-                    {category?.id ? 'Mettre à jour' : 'Créer la catégorie'}
-                </Button>
-            </div>
-        </form>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            rows={4}
+                            value={data.description || ''}
+                            onChange={(e) => setData('description', e.target.value)}
+                            placeholder="Description de la catégorie (optionnel)"
+                            className="w-full"
+                        />
+                        <InputError message={errors.description} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="order">Ordre d'affichage</Label>
+                            <Input
+                                id="order"
+                                type="number"
+                                value={data.order}
+                                onChange={(e) => setData('order', parseInt(e.target.value) || 0)}
+                                placeholder="0"
+                                min="0"
+                                className="w-full"
+                            />
+                            <InputError message={errors.order} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Statut</Label>
+                            <div className="flex items-center space-x-3 pt-2">
+                                <Checkbox
+                                    id="is_active"
+                                    checked={data.is_active}
+                                    onCheckedChange={(checked) => setData('is_active', checked === true)}
+                                />
+                                <div className="space-y-1">
+                                    <label 
+                                        htmlFor="is_active" 
+                                        className="text-sm font-medium leading-none cursor-pointer"
+                                    >
+                                        Catégorie active
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                        Si désactivé, la catégorie ne sera pas visible sur le site.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => window.history.back()}
+                        >
+                            Annuler
+                        </Button>
+                        <Button 
+                            type="submit" 
+                            disabled={processing}
+                            className="min-w-[140px]"
+                        >
+                            {processing 
+                                ? 'Enregistrement...' 
+                                : category?.id 
+                                    ? 'Mettre à jour' 
+                                    : 'Créer la catégorie'}
+                        </Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
     );
 }

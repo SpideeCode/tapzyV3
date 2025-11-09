@@ -1,6 +1,28 @@
 import React from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import Pagination from '@/components/pagination';
+import { Eye } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 type Item = { id: number; name: string };
 type OrderItem = { id: number; quantity: number; price: number; item: Item };
@@ -35,74 +57,133 @@ function formatPrice(n: number) {
 
 export default function AdminOrdersIndex({ orders, restaurants, currentRestaurantId }: PageProps) {
     const { url } = usePage();
-    const [restaurantId, setRestaurantId] = React.useState<string>(currentRestaurantId ? String(currentRestaurantId) : '');
+    const [restaurantId, setRestaurantId] = React.useState<string>(currentRestaurantId ? String(currentRestaurantId) : 'all');
 
     const onFilter = (e: React.FormEvent) => {
         e.preventDefault();
-        const q = restaurantId ? `?restaurant_id=${restaurantId}` : '';
+        const q = restaurantId && restaurantId !== 'all' ? `?restaurant_id=${restaurantId}` : '';
         window.location.href = `/admin/orders${q}`;
+    };
+
+    const getStatusBadgeVariant = (status: string) => {
+        switch (status) {
+            case 'served':
+                return 'success';
+            case 'in_progress':
+                return 'info';
+            case 'cancelled':
+                return 'destructive';
+            default:
+                return 'warning';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            pending: 'En attente',
+            in_progress: 'En cours',
+            served: 'Servie',
+            cancelled: 'Annulée',
+        };
+        return labels[status] || status;
     };
 
     return (
         <AdminLayout>
             <Head title="Commandes" />
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-2xl font-semibold">Commandes</h1>
-                    </div>
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div>
+                                <CardTitle className="text-2xl font-semibold">Gestion des commandes</CardTitle>
+                                <CardDescription className="mt-1">
+                                    Consultez et gérez les commandes des clients
+                                </CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <Card className="border-border/50">
+                                <CardContent className="pt-6">
+                                    <form onSubmit={onFilter} className="flex flex-wrap gap-4 items-end">
+                                        <div className="flex-1 min-w-[200px]">
+                                            <Label htmlFor="restaurant">Filtrer par restaurant</Label>
+                                            <Select
+                                                value={restaurantId}
+                                                onValueChange={setRestaurantId}
+                                            >
+                                                <SelectTrigger id="restaurant" className="w-full">
+                                                    <SelectValue placeholder="Tous les restaurants" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Tous</SelectItem>
+                                                    {restaurants.map((r) => (
+                                                        <SelectItem key={r.id} value={String(r.id)}>
+                                                            {r.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Button type="submit">Appliquer le filtre</Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
 
-                    <form onSubmit={onFilter} className="mb-6 bg-white p-4 rounded shadow border flex flex-wrap gap-3 items-end">
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Filtrer par restaurant</label>
-                            <select
-                                className="border rounded px-3 py-2"
-                                value={restaurantId}
-                                onChange={(e) => setRestaurantId(e.target.value)}
-                            >
-                                <option value="">Tous</option>
-                                {restaurants.map((r) => (
-                                    <option key={r.id} value={r.id}>{r.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded">Appliquer</button>
-                    </form>
-
-                    <div className="bg-white rounded shadow border overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Table</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créée</th>
-                                    <th className="px-4 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {orders.data.map((o) => (
-                                    <tr key={o.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3">{o.id}</td>
-                                        <td className="px-4 py-3">{o.restaurant?.name}</td>
-                                        <td className="px-4 py-3">{o.table?.table_number}</td>
-                                        <td className="px-4 py-3">
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                                                {o.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 font-medium">{formatPrice(o.total)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-500">{new Date(o.created_at).toLocaleString()}</td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link href={`/admin/orders/${o.id}`} className="text-indigo-600 hover:text-indigo-900 text-sm">Détails</Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            {orders.data.length > 0 ? (
+                                <div className="space-y-4">
+                                    <div className="rounded-md border border-border overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>#</TableHead>
+                                                    <TableHead>Restaurant</TableHead>
+                                                    <TableHead>Table</TableHead>
+                                                    <TableHead>Statut</TableHead>
+                                                    <TableHead>Total</TableHead>
+                                                    <TableHead>Créée le</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {orders.data.map((o) => (
+                                                    <TableRow key={o.id}>
+                                                        <TableCell className="font-medium">#{o.id}</TableCell>
+                                                        <TableCell>{o.restaurant?.name || 'N/A'}</TableCell>
+                                                        <TableCell>{o.table?.table_number || 'N/A'}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={getStatusBadgeVariant(o.status) as any}>
+                                                                {getStatusLabel(o.status)}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">{formatPrice(o.total)}</TableCell>
+                                                        <TableCell className="text-muted-foreground">
+                                                            {new Date(o.created_at).toLocaleString('fr-FR')}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button variant="ghost" size="sm" asChild>
+                                                                <Link href={`/admin/orders/${o.id}`}>
+                                                                    <Eye className="h-4 w-4 mr-1" />
+                                                                    Détails
+                                                                </Link>
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    {orders.links && orders.links.length > 0 && (
+                                        <Pagination links={orders.links} />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-muted-foreground">Aucune commande trouvée.</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

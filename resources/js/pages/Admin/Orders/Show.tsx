@@ -1,6 +1,25 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { ArrowLeft, Save } from 'lucide-react';
 
 type Item = { id: number; name: string };
 type OrderItem = { id: number; quantity: number; price: number; item: Item };
@@ -49,47 +68,117 @@ export default function AdminOrderShow({ order }: { order: Order }) {
         }
     };
 
+    const getStatusBadgeVariant = (status: string) => {
+        switch (status) {
+            case 'served':
+                return 'success';
+            case 'in_progress':
+                return 'info';
+            case 'cancelled':
+                return 'destructive';
+            default:
+                return 'warning';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            pending: 'En attente',
+            in_progress: 'En préparation',
+            served: 'Servie',
+            cancelled: 'Annulée',
+        };
+        return labels[status] || status;
+    };
+
     return (
         <AdminLayout>
             <Head title={`Commande #${order.id}`} />
-            <div className="py-8">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="mb-4">
-                        <Link href="/admin/orders" className="text-sm text-gray-600 hover:text-gray-900">← Retour aux commandes</Link>
-                    </div>
-                    <div className="bg-white rounded shadow border">
-                        <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-5xl mx-auto space-y-6">
+                    <Button variant="ghost" asChild>
+                        <Link href="/admin/orders">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Retour aux commandes
+                        </Link>
+                    </Button>
+
+                    <Card className="border-border/50 shadow-lg">
+                        <CardHeader>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-2xl font-semibold">
+                                        Commande #{order.id}
+                                    </CardTitle>
+                                    <CardDescription className="mt-2 space-y-1">
+                                        <div>{order.restaurant?.name} — Table {order.table?.table_number}</div>
+                                        <div>{new Date(order.created_at).toLocaleString('fr-FR')}</div>
+                                    </CardDescription>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Select
+                                        value={status}
+                                        onValueChange={(value) => setStatus(value as Order['status'])}
+                                    >
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="pending">En attente</SelectItem>
+                                            <SelectItem value="in_progress">En préparation</SelectItem>
+                                            <SelectItem value="served">Servie</SelectItem>
+                                            <SelectItem value="cancelled">Annulée</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Button onClick={update} disabled={saving}>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        {saving ? 'Enregistrement...' : 'Mettre à jour'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
                             <div>
-                                <h1 className="text-2xl font-semibold">Commande #{order.id}</h1>
-                                <div className="text-sm text-gray-600 mt-1">{order.restaurant?.name} — Table {order.table?.table_number}</div>
-                                <div className="text-xs text-gray-500 mt-1">{new Date(order.created_at).toLocaleString()}</div>
+                                <h3 className="text-lg font-semibold mb-4">Articles commandés</h3>
+                                <div className="rounded-md border border-border overflow-hidden">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Article</TableHead>
+                                                <TableHead className="text-right">Quantité</TableHead>
+                                                <TableHead className="text-right">Prix unitaire</TableHead>
+                                                <TableHead className="text-right">Total</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {order.items.map((oi) => (
+                                                <TableRow key={oi.id}>
+                                                    <TableCell className="font-medium">
+                                                        {oi.item?.name || 'Article inconnu'}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {oi.quantity}
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-muted-foreground">
+                                                        {formatPrice(oi.price)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-medium">
+                                                        {formatPrice(oi.price * oi.quantity)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <select className="border rounded px-3 py-2" value={status} onChange={(e) => setStatus(e.target.value as Order['status'])}>
-                                    <option value="pending">En attente</option>
-                                    <option value="in_progress">En préparation</option>
-                                    <option value="served">Servie</option>
-                                    <option value="cancelled">Annulée</option>
-                                </select>
-                                <button onClick={update} disabled={saving} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50">{saving ? '...' : 'Mettre à jour'}</button>
+                            <div className="flex justify-between items-center pt-4 border-t border-border">
+                                <span className="text-lg font-semibold">Total</span>
+                                <span className="text-2xl font-bold text-primary">
+                                    {formatPrice(order.total)}
+                                </span>
                             </div>
-                        </div>
-                        <div className="px-6 py-4">
-                            <h2 className="text-lg font-medium mb-3">Articles</h2>
-                            <div className="divide-y">
-                                {order.items.map((oi) => (
-                                    <div key={oi.id} className="py-3 flex justify-between text-sm">
-                                        <span>{oi.item?.name} x {oi.quantity}</span>
-                                        <span className="text-gray-600">{formatPrice(oi.price * oi.quantity)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-4 flex justify-between items-center">
-                                <span className="text-gray-700 font-medium">Total</span>
-                                <span className="text-xl font-bold text-indigo-600">{formatPrice(order.total)}</span>
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

@@ -9,8 +9,9 @@ export default function InputError({
     return message ? (
         <p
             {...props}
-            className={cn('text-sm text-red-600 dark:text-red-400', className)}
+            className={cn('text-sm text-destructive font-medium flex items-center gap-1.5', className)}
         >
+            <span className="text-destructive">•</span>
             {message}
         </p>
     ) : null;
