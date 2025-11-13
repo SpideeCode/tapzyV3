@@ -51,7 +51,7 @@ export default function Welcome() {
                 Voir la démo
               </button>
             </div>
-            <div className="flex items-center gap-8 pt-4">
+            {/* <div className="flex items-center gap-8 pt-4">
               <div>
                 <div className="text-3xl font-bold text-[#EAEAEA]">500+</div>
                 <div className="text-sm text-[#A0A0A0]">Restaurants partenaires</div>
@@ -61,7 +61,7 @@ export default function Welcome() {
                 <div className="text-3xl font-bold text-[#EAEAEA]">50k+</div>
                 <div className="text-sm text-[#A0A0A0]">Commandes par jour</div>
               </div>
-            </div>
+            </div> */}
           </div>
           
           <div className="relative">
@@ -244,7 +244,7 @@ export default function Welcome() {
               </span>
             </div>
             <div className="text-[#A0A0A0]">
-              &copy; 2024 Tapzy. Tous droits réservés.
+              &copy; 2025 Tapzy. Tous droits réservés.
             </div>
           </div>
         </div>
