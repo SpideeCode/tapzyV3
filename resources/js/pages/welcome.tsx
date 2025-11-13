@@ -1,6 +1,11 @@
-import { QrCode, Smartphone, Zap, Clock, CreditCard, Users, ArrowRight, Check } from 'lucide-react';
+import { QrCode, Smartphone, Zap, Clock, CreditCard, Users, ArrowRight, Check, LogOut } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+
 
 export default function Welcome() {
+  const { props } = usePage();
+  const auth = props.auth as { user?: { name: string } } | undefined;
+  const isAuthenticated = Boolean(auth?.user);
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-[#EAEAEA]">
       {/* Header */}
@@ -15,12 +20,35 @@ export default function Welcome() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="px-4 py-2 text-[#A0A0A0] hover:text-[#3B82F6] transition-colors">
-              Connexion
-            </button>
-            <button className="px-6 py-2 bg-[#3B82F6] text-white rounded-full hover:bg-[#2563EB] hover:shadow-lg transition-all hover:scale-105">
-              Démo gratuite
-            </button>
+            {isAuthenticated ? (
+              <>
+                <span className="text-[#EAEAEA]">Bonjour, {auth?.user?.name || 'Utilisateur'}</span>
+                <Link 
+                  href="/logout" 
+                  method="post" 
+                  as="button"
+                  className="flex items-center gap-2 px-4 py-2 text-[#A0A0A0] hover:text-[#3B82F6] transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Déconnexion
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/login" 
+                  className="px-4 py-2 text-[#A0A0A0] hover:text-[#3B82F6] transition-colors"
+                >
+                  Connexion
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="px-6 py-2 bg-[#3B82F6] text-white rounded-full hover:bg-[#2563EB] hover:shadow-lg transition-all hover:scale-105"
+                >
+                  S'inscrire
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </header>
@@ -43,10 +71,13 @@ export default function Welcome() {
               commandez, et payez directement depuis votre smartphone. Simple, rapide, fluide.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button className="group px-8 py-4 bg-[#3B82F6] text-white rounded-full font-semibold hover:bg-[#2563EB] hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2">
-                Commencer maintenant
+              <Link 
+                href={isAuthenticated ? '/dashboard' : '/register'} 
+                className="group px-8 py-4 bg-[#3B82F6] text-white rounded-full font-semibold hover:bg-[#2563EB] hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2"
+              >
+                {isAuthenticated ? 'Tableau de bord' : 'Commencer maintenant'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
               <button className="px-8 py-4 border-2 border-[#3B82F6] text-[#3B82F6] rounded-full font-semibold hover:bg-[#161617] transition-all">
                 Voir la démo
               </button>
