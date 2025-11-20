@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock, CheckCircle2, XCircle, ChefHat, Utensils } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Item = { id: number; name: string };
 type OrderItem = { id: number; quantity: number; price: number; item: Item };
@@ -32,79 +37,107 @@ interface PageProps {
     currentStatus?: string | null;
 }
 
-function formatPrice(n: number) {
-    return `${Number(n).toFixed(2)} €`;
+const statusConfig = {
+    pending: {
+        label: 'En attente',
+        color: 'bg-yellow-500 hover:bg-yellow-600 text-white',
+        badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        icon: Clock,
+    },
+    in_progress: {
+        label: 'En préparation',
+        color: 'bg-blue-500 hover:bg-blue-600 text-white',
+        badge: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: ChefHat,
+    },
+    served: {
+        label: 'Servie',
+        color: 'bg-green-500 hover:bg-green-600 text-white',
+        badge: 'bg-green-100 text-green-800 border-green-200',
+        icon: CheckCircle2,
+    },
+    cancelled: {
+        label: 'Annulée',
+        color: 'bg-red-500 hover:bg-red-600 text-white',
+        badge: 'bg-red-100 text-red-800 border-red-200',
+        icon: XCircle,
+    },
+};
+
+function TimeAgo({ date }: { date: string }) {
+    const [timeAgo, setTimeAgo] = useState('');
+
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const created = new Date(date);
+            const diffInSeconds = Math.floor((now.getTime() - created.getTime()) / 1000);
+
+            if (diffInSeconds < 60) {
+                setTimeAgo('À l\'instant');
+            } else {
+                const minutes = Math.floor(diffInSeconds / 60);
+                setTimeAgo(`${minutes} min`);
+            }
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 60000);
+        return () => clearInterval(interval);
+    }, [date]);
+
+    return <span className="font-mono font-bold text-lg">{timeAgo}</span>;
 }
 
-const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    in_progress: 'bg-blue-100 text-blue-800',
-    served: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
-};
-
-const statusLabels: Record<string, string> = {
-    pending: 'En attente',
-    in_progress: 'En préparation',
-    served: 'Servie',
-    cancelled: 'Annulée',
-};
-
 export default function StaffOrders({ orders, restaurants, currentRestaurantId, currentStatus }: PageProps) {
-    const [restaurantId, setRestaurantId] = React.useState<string>(currentRestaurantId ? String(currentRestaurantId) : '');
-    const [status, setStatus] = React.useState<string>(currentStatus || '');
-    const [updating, setUpdating] = React.useState<Record<number, boolean>>({});
+    const [restaurantId, setRestaurantId] = useState<string>(currentRestaurantId ? String(currentRestaurantId) : '');
+    const [status, setStatus] = useState<string>(currentStatus || '');
+    const [updating, setUpdating] = useState<Record<number, boolean>>({});
 
-    // Auto-rafraîchissement périodique
-    React.useEffect(() => {
+    // Auto-refresh optimized to keep scroll position
+    useEffect(() => {
         const id = setInterval(() => {
-            router.reload({ only: ['orders'] });
-        }, 5000);
+            router.reload({ only: ['orders'], preserveScroll: true, preserveState: true });
+        }, 10000); // 10 seconds to reduce load
         return () => clearInterval(id);
     }, []);
 
-    const applyFilters = () => {
+    const applyFilters = (newRestaurantId?: string, newStatus?: string) => {
+        const rId = newRestaurantId !== undefined ? newRestaurantId : restaurantId;
+        const s = newStatus !== undefined ? newStatus : status;
+
         const params = new URLSearchParams();
-        if (restaurantId) params.set('restaurant_id', restaurantId);
-        if (status) params.set('status', status);
-        const q = params.toString();
-        router.visit(`/staff/orders${q ? `?${q}` : ''}`, { preserveState: false });
+        if (rId) params.set('restaurant_id', rId);
+        if (s) params.set('status', s);
+
+        router.visit(`/staff/orders?${params.toString()}`, { preserveState: true, preserveScroll: true });
     };
 
     const changeStatus = async (orderId: number, newStatus: string) => {
         setUpdating((prev) => ({ ...prev, [orderId]: true }));
         try {
-            // Récupérer token depuis meta ou cookie XSRF-TOKEN
             const getCsrf = () => {
                 const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
-                if (meta?.content) return meta.content;
-                const cookies = document.cookie.split(';');
-                for (const c of cookies) {
-                    const [name, value] = c.trim().split('=');
-                    if (name === 'XSRF-TOKEN') return decodeURIComponent(value);
-                }
-                return '';
+                return meta?.content || '';
             };
-            const csrf = getCsrf();
+
             const res = await fetch(`/staff/orders/${orderId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
+                    'X-CSRF-TOKEN': getCsrf(),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                credentials: 'same-origin',
                 body: JSON.stringify({ status: newStatus }),
             });
+
             if (res.ok) {
-                router.reload({ only: ['orders'] });
+                router.reload({ only: ['orders'], preserveScroll: true });
             } else {
-                let msg = 'Erreur lors de la mise à jour';
-                try { const j = await res.json(); msg = j.message || msg; } catch {}
-                alert(msg);
+                console.error('Failed to update status');
             }
         } catch (err) {
-            alert('Erreur lors de la mise à jour');
+            console.error('Error updating status:', err);
         } finally {
             setUpdating((prev) => ({ ...prev, [orderId]: false }));
         }
@@ -112,152 +145,163 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
 
     return (
         <AppLayout>
-            <Head title="Commandes Staff - Temps réel" />
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900">Commandes en temps réel</h1>
-                        <p className="text-gray-600 mt-2">Gérez les commandes et leurs statuts</p>
-                    </div>
+            <Head title="Cuisine - Commandes en cours" />
 
-                    {/* Filtres */}
-                    <div className="bg-white p-4 rounded-lg shadow border mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant</label>
-                                <select
-                                    className="w-full border rounded px-3 py-2"
-                                    value={restaurantId}
-                                    onChange={(e) => setRestaurantId(e.target.value)}
-                                >
-                                    <option value="">Tous les restaurants</option>
-                                    {restaurants.map((r) => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
-                                    ))}
-                                </select>
+            <div className="min-h-screen bg-gray-50/50 p-4 md:p-6">
+                <div className="max-w-[1600px] mx-auto space-y-6">
+                    {/* Header & Filters */}
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Utensils className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                                <select
-                                    className="w-full border rounded px-3 py-2"
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                >
-                                    <option value="">Tous les statuts</option>
-                                    <option value="pending">En attente</option>
-                                    <option value="in_progress">En préparation</option>
-                                    <option value="served">Servie</option>
-                                    <option value="cancelled">Annulée</option>
-                                </select>
+                                <h1 className="text-2xl font-bold text-gray-900">Cuisine</h1>
+                                <p className="text-sm text-muted-foreground">Vue en temps réel</p>
                             </div>
-                            <div className="flex items-end">
-                                <button
-                                    onClick={applyFilters}
-                                    className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-                                >
-                                    Appliquer les filtres
-                                </button>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                            <select
+                                className="flex-1 md:w-48 rounded-lg border-gray-300 text-sm focus:ring-primary focus:border-primary"
+                                value={restaurantId}
+                                onChange={(e) => {
+                                    setRestaurantId(e.target.value);
+                                    applyFilters(e.target.value, undefined);
+                                }}
+                            >
+                                <option value="">Tous les restaurants</option>
+                                {restaurants.map((r) => (
+                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                ))}
+                            </select>
+
+                            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                {['', 'pending', 'in_progress', 'served'].map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => {
+                                            setStatus(s);
+                                            applyFilters(undefined, s);
+                                        }}
+                                        className={cn(
+                                            "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                                            status === s
+                                                ? "bg-white text-primary shadow-sm"
+                                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-200/50"
+                                        )}
+                                    >
+                                        {s === '' ? 'Tout' : statusConfig[s as keyof typeof statusConfig]?.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Liste des commandes */}
-                    <div className="space-y-4">
-                        {orders.data.length === 0 ? (
-                            <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
-                                Aucune commande trouvée
-                            </div>
-                        ) : (
-                            orders.data.map((order) => (
-                                <div key={order.id} className="bg-white rounded-lg shadow border p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-lg font-semibold">Commande #{order.id}</span>
-                                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
-                                                    {statusLabels[order.status] || order.status}
-                                                </span>
-                                            </div>
-                                            <div className="text-sm text-gray-600 mt-1">
-                                                {order.restaurant?.name} - Table {order.table?.table_number}
-                                            </div>
-                                            <div className="text-xs text-gray-500 mt-1">
-                                                {new Date(order.created_at).toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-xl font-bold text-indigo-600">{formatPrice(order.total)}</div>
-                                        </div>
-                                    </div>
+                    {/* Orders Grid */}
+                    {orders.data.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
+                            <ChefHat className="w-16 h-16 mb-4 opacity-20" />
+                            <p className="text-xl font-medium">Aucune commande en cours</p>
+                            <p className="text-sm">C'est calme pour le moment...</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {orders.data.map((order) => {
+                                const StatusIcon = statusConfig[order.status].icon;
 
-                                    {/* Items */}
-                                    <div className="mb-4 border-t pt-4">
-                                        <div className="space-y-2">
-                                            {order.items.map((oi) => (
-                                                <div key={oi.id} className="flex justify-between text-sm">
-                                                    <span>{oi.item?.name} x {oi.quantity}</span>
-                                                    <span className="text-gray-600">{formatPrice(oi.price * oi.quantity)}</span>
+                                return (
+                                    <Card key={order.id} className={cn(
+                                        "flex flex-col border-l-4 shadow-sm hover:shadow-md transition-shadow",
+                                        order.status === 'pending' ? "border-l-yellow-500" :
+                                            order.status === 'in_progress' ? "border-l-blue-500" :
+                                                order.status === 'served' ? "border-l-green-500" : "border-l-gray-300"
+                                    )}>
+                                        <CardHeader className="pb-3 space-y-0">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-2xl font-black text-gray-900">
+                                                            Table {order.table?.table_number}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">#{order.id}</span>
+                                                    </div>
+                                                    <div className="text-sm font-medium text-muted-foreground truncate max-w-[150px]">
+                                                        {order.restaurant?.name}
+                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                                <div className="text-right">
+                                                    <TimeAgo date={order.created_at} />
+                                                    <Badge variant="outline" className={cn("mt-1 block w-fit ml-auto", statusConfig[order.status].badge)}>
+                                                        <StatusIcon className="w-3 h-3 mr-1 inline" />
+                                                        {statusConfig[order.status].label}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
 
-                                    {/* Actions de changement de statut */}
-                                    <div className="border-t pt-4 flex flex-wrap gap-2">
-                                        {order.status !== 'pending' && (
-                                            <button
-                                                onClick={() => changeStatus(order.id, 'pending')}
-                                                disabled={updating[order.id]}
-                                                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 disabled:opacity-50"
-                                            >
-                                                {updating[order.id] ? '...' : 'En attente'}
-                                            </button>
-                                        )}
-                                        {order.status !== 'in_progress' && order.status !== 'served' && order.status !== 'cancelled' && (
-                                            <button
-                                                onClick={() => changeStatus(order.id, 'in_progress')}
-                                                disabled={updating[order.id]}
-                                                className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200 disabled:opacity-50"
-                                            >
-                                                {updating[order.id] ? '...' : 'En préparation'}
-                                            </button>
-                                        )}
-                                        {order.status !== 'served' && order.status !== 'cancelled' && (
-                                            <button
-                                                onClick={() => changeStatus(order.id, 'served')}
-                                                disabled={updating[order.id]}
-                                                className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded hover:bg-green-200 disabled:opacity-50"
-                                            >
-                                                {updating[order.id] ? '...' : 'Servie'}
-                                            </button>
-                                        )}
-                                        {order.status !== 'cancelled' && (
-                                            <button
-                                                onClick={() => changeStatus(order.id, 'cancelled')}
-                                                disabled={updating[order.id]}
-                                                className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200 disabled:opacity-50"
-                                            >
-                                                {updating[order.id] ? '...' : 'Annuler'}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                                        <CardContent className="flex-1 py-2">
+                                            <div className="space-y-3">
+                                                {order.items.map((oi) => (
+                                                    <div key={oi.id} className="flex justify-between items-start group">
+                                                        <div className="flex gap-3">
+                                                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-sm font-bold text-gray-900 group-hover:bg-primary group-hover:text-white transition-colors">
+                                                                {oi.quantity}
+                                                            </span>
+                                                            <span className="text-sm font-medium text-gray-700 leading-tight pt-0.5">
+                                                                {oi.item?.name}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
 
-                    {/* Pagination */}
-                    {orders.last_page > 1 && (
-                        <div className="mt-6 flex justify-center gap-2">
-                            {orders.links.map((link, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => link.url && router.visit(link.url, { preserveState: false })}
-                                    disabled={!link.url || link.active}
-                                    className={`px-4 py-2 rounded ${link.active ? 'bg-indigo-600 text-white' : 'bg-white border hover:bg-gray-50'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
+                                        <CardFooter className="pt-3 border-t bg-gray-50/50">
+                                            <div className="grid grid-cols-2 gap-2 w-full">
+                                                {order.status === 'pending' && (
+                                                    <Button
+                                                        className="w-full col-span-2 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg font-semibold"
+                                                        onClick={() => changeStatus(order.id, 'in_progress')}
+                                                        disabled={updating[order.id]}
+                                                    >
+                                                        {updating[order.id] ? '...' : 'Lancer'}
+                                                    </Button>
+                                                )}
+
+                                                {order.status === 'in_progress' && (
+                                                    <Button
+                                                        className="w-full col-span-2 bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+                                                        onClick={() => changeStatus(order.id, 'served')}
+                                                        disabled={updating[order.id]}
+                                                    >
+                                                        {updating[order.id] ? '...' : 'Servir'}
+                                                    </Button>
+                                                )}
+
+                                                {(order.status === 'served' || order.status === 'cancelled') && (
+                                                    <div className="col-span-2 text-center text-sm text-muted-foreground py-2 font-medium">
+                                                        Commande terminée
+                                                    </div>
+                                                )}
+
+                                                {order.status !== 'served' && order.status !== 'cancelled' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="col-span-2 text-red-600 hover:text-red-700 hover:bg-red-50 h-8 text-xs"
+                                                        onClick={() => {
+                                                            if (confirm('Annuler cette commande ?')) changeStatus(order.id, 'cancelled');
+                                                        }}
+                                                        disabled={updating[order.id]}
+                                                    >
+                                                        Annuler
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </CardFooter>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
