@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
+import AppLayout from '@/layouts/AppLayout';
 
 type Item = { id: number; name: string };
 type OrderItem = { id: number; quantity: number; price: number; item: Item };

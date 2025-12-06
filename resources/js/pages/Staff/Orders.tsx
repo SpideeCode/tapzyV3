@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
+import StaffLayout from '@/layouts/StaffLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -144,7 +144,7 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
     };
 
     return (
-        <AppLayout>
+        <StaffLayout>
             <Head title="Cuisine - Commandes en cours" />
 
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6 transition-colors duration-300">
@@ -308,7 +308,7 @@ export default function StaffOrders({ orders, restaurants, currentRestaurantId, 
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </StaffLayout>
     );
 }
 

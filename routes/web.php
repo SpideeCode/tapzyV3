@@ -39,6 +39,18 @@ Route::get('/staff/orders', [\App\Http\Controllers\StaffController::class, 'orde
 Route::patch('/staff/orders/{order}/status', [\App\Http\Controllers\StaffController::class, 'updateOrderStatus'])
     ->name('staff.orders.update-status');
 
+// Routes Staff Dashboard
+Route::prefix('staff')->name('staff.')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Staff/Dashboard');
+    })->name('dashboard');
+
+    // Utilisation des contrôleurs Staff dédiés
+    Route::resource('tables', \App\Http\Controllers\Staff\TableController::class);
+    Route::post('tables/{table}/regenerate-qr', [\App\Http\Controllers\Staff\TableController::class, 'regenerateQrCode'])->name('tables.regenerate-qr');
+    Route::resource('items', \App\Http\Controllers\Staff\ItemController::class)->except(['show']);
+});
+
 // Routes protégées par authentification
 Route::middleware(['auth', 'verified'])->group(function () {
     // Tableau de bord
