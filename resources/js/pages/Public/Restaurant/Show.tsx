@@ -7,13 +7,13 @@ import { useCart } from '@/hooks/use-cart';
 export const formatPrice = (price: unknown): string => {
     // Convertir en nombre si ce n'est pas déjà le cas
     const numPrice = typeof price === 'number' ? price : Number(price);
-    
+
     // Vérifier si la conversion a réussi
     if (isNaN(numPrice)) {
         console.warn('Prix invalide:', price);
         return 'Prix non disponible';
     }
-    
+
     // Formater avec 2 décimales
     return numPrice.toFixed(2) + ' €';
 };
@@ -52,7 +52,7 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
 
     React.useEffect(() => {
         setRestaurant(restaurant.id);
-        
+
         // Pré-remplir la table depuis l'URL si présente
         const urlParams = new URLSearchParams(window.location.search);
         const tableFromUrl = urlParams.get('table');
@@ -67,28 +67,28 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
     return (
         <AppLayout>
             <Head title={restaurant.name} />
-            
+
             <div className="py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* En-tête du restaurant */}
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">{restaurant.name}</h1>
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{restaurant.name}</h1>
                         {restaurant.description && (
-                            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                                 {restaurant.description}
                             </p>
                         )}
                     </div>
 
                     {/* Sélecteur de table */}
-                    <div className="mb-12 bg-white p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4">Sélectionnez votre table</h2>
+                    <div className="mb-12 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 transition-colors">
+                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Sélectionnez votre table</h2>
                         <div className="w-full max-w-xs">
                             {restaurant.tables.length > 0 ? (
                                 <select
                                     value={state.tableNumber || ''}
                                     onChange={(e) => setTableNumber(e.target.value)}
-                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md transition-colors"
                                 >
                                     <option value="">Sélectionnez une table</option>
                                     {restaurant.tables.map(table => (
@@ -98,7 +98,7 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                     ))}
                                 </select>
                             ) : (
-                                <p className="text-gray-500">Aucune table disponible pour le moment.</p>
+                                <p className="text-gray-500 dark:text-gray-400">Aucune table disponible pour le moment.</p>
                             )}
                         </div>
                     </div>
@@ -107,16 +107,16 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                     <div className="space-y-12">
                         {categories.map((category) => (
                             <div key={category.name} id={`category-${category.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
+                                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
                                     {category.name}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {category.items.map((item) => (
-                                        <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700">
                                             {item.image && (
-                                                <div className="h-48 bg-gray-200 overflow-hidden">
-                                                    <img 
-                                                        src={item.image} 
+                                                <div className="h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                                    <img
+                                                        src={item.image}
                                                         alt={item.name}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -124,16 +124,16 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                             )}
                                             <div className="p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                                                    <span className="text-lg font-bold text-indigo-600">
+                                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{item.name}</h3>
+                                                    <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                                                         {formatPrice(item.price)}
                                                     </span>
                                                 </div>
                                                 {item.description && (
-                                                    <p className="mt-2 text-gray-600">{item.description}</p>
+                                                    <p className="mt-2 text-gray-600 dark:text-gray-300">{item.description}</p>
                                                 )}
                                                 <button
-                                                    className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                                                     onClick={() => addItem({ itemId: item.id, name: item.name, price: item.price, image: item.image })}
                                                 >
                                                     Ajouter au panier
@@ -147,15 +147,15 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                     </div>
 
                     {/* Panier */}
-                    <div className="fixed bottom-6 right-6 w-full max-w-sm">
-                        <div className="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
-                            <div className="px-4 py-3 border-b">
-                                <h3 className="font-semibold">Votre panier</h3>
-                                <p className="text-sm text-gray-500">Table: {state.tableNumber ?? 'non sélectionnée'}</p>
+                    <div className="fixed bottom-6 right-6 w-full max-w-sm z-50">
+                        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors">
+                            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                                <h3 className="font-semibold text-gray-900 dark:text-white">Votre panier</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Table: {state.tableNumber ?? 'non sélectionnée'}</p>
                             </div>
-                            <div className="max-h-72 overflow-auto divide-y">
+                            <div className="max-h-72 overflow-auto divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                                 {state.items.length === 0 ? (
-                                    <div className="p-4 text-sm text-gray-500">Panier vide</div>
+                                    <div className="p-4 text-sm text-gray-500 dark:text-gray-400">Panier vide</div>
                                 ) : (
                                     state.items.map((line) => (
                                         <div key={line.itemId} className="p-4 flex items-center gap-3">
@@ -163,26 +163,26 @@ export default function Show({ restaurant, categories }: ShowRestaurantProps) {
                                                 <img src={line.image} alt={line.name} className="w-12 h-12 object-cover rounded" />
                                             )}
                                             <div className="flex-1">
-                                                <div className="font-medium">{line.name}</div>
-                                                <div className="text-sm text-gray-500">{formatPrice(line.price)}</div>
+                                                <div className="font-medium text-gray-900 dark:text-white">{line.name}</div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">{formatPrice(line.price)}</div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <button className="px-2 py-1 border rounded" onClick={() => decrement(line.itemId)}>-</button>
-                                                <span className="min-w-6 text-center">{line.quantity}</span>
-                                                <button className="px-2 py-1 border rounded" onClick={() => increment(line.itemId)}>+</button>
+                                                <button className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => decrement(line.itemId)}>-</button>
+                                                <span className="min-w-6 text-center text-gray-900 dark:text-white">{line.quantity}</span>
+                                                <button className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => increment(line.itemId)}>+</button>
                                             </div>
-                                            <button className="ml-2 text-red-500" onClick={() => removeItem(line.itemId)}>×</button>
+                                            <button className="ml-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" onClick={() => removeItem(line.itemId)}>×</button>
                                         </div>
                                     ))
                                 )}
                             </div>
-                            <div className="p-4 border-t">
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                                 <div className="flex justify-between mb-3">
-                                    <span className="text-gray-600">Total</span>
-                                    <span className="font-semibold">{formatPrice(total)}</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Total</span>
+                                    <span className="font-semibold text-gray-900 dark:text-white">{formatPrice(total)}</span>
                                 </div>
                                 <button
-                                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     onClick={handleGoToPayment}
                                     disabled={!state.tableNumber || state.items.length === 0}
                                 >
